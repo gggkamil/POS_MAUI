@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ButchersCashier.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:ButchersCashier"
+    xmlns:cashierApp="clr-namespace:CashierApp"
+    xmlns:pages="clr-namespace:ButchersCashier.Pages"
+    Shell.FlyoutBehavior="Disabled">
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate pages:LoginPage}" />
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate cashierApp:MainPage}"
+        Route="MainPage" />
+
+</Shell>

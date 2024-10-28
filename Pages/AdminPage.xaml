@@ -1,0 +1,21 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CashierApp.AdminPage" 
+             >
+    <VerticalStackLayout Padding="10">
+        <Label Text="Add Product" FontSize="24" />
+        <Entry x:Name="ProductNameEntry" Placeholder="Product Name" />
+        <Entry x:Name="ProductCategoryEntry" Placeholder="Category" />
+        <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type">
+            <Picker.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Items</x:String>
+                    <x:String>Kilograms</x:String>
+                </x:Array>
+            </Picker.ItemsSource>
+        </Picker>
+        <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" />
+        <Button Text="Add Product" Clicked="OnAddProductClicked" />
+        <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" />
+    </VerticalStackLayout>
+</ContentPage>
