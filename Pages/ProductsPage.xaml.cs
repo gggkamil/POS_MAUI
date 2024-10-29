@@ -43,7 +43,14 @@ namespace CashierApp
                 await DisplayAlert("Błąd", $"Problem z załadowaniem produktów: {ex.Message}", "OK");
             }
         }
-
+        public void DeleteReceiptItem(ReceiptItem item)
+        {
+            if (ReceiptItems.Contains(item))
+            {
+                ReceiptItems.Remove(item); 
+                RefreshTotalAmount(); 
+            }
+        }
         private void AddProductButtons()
         {
             ProductButtonsGrid.Children.Clear();
@@ -194,7 +201,8 @@ namespace CashierApp
             }
             else
             {
-                var newItem = new ReceiptItem
+                // Pass 'this' to the ReceiptItem constructor to give it a reference to the current ProductsPage instance
+                var newItem = new ReceiptItem(this) // Pass the current ProductsPage instance
                 {
                     Name = itemName,
                     Quantity = quantity,

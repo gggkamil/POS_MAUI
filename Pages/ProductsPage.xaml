@@ -21,29 +21,41 @@
                     <DataTemplate>
                         <Grid Padding="10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <!-- Item Name -->
                             <Label Text="{Binding Name}" Grid.Column="0" VerticalOptions="Center" />
 
+                            <Label Text="{Binding UnitPrice, StringFormat='kg/szt: {0:C}'}" 
+                                   Grid.Column="1" 
+                                   VerticalOptions="Center" />
                             <!-- Editable Quantity -->
                             <Entry Text="{Binding Quantity, Mode=TwoWay}"
                                    Keyboard="Numeric" 
-                                   Grid.Column="1"
+                                   Grid.Column="2"
                                    VerticalOptions="Center"/>
-                            <Label Text="{Binding UnitPrice, StringFormat='kg/szt: {0:C}'}" 
-                                   Grid.Column="2" 
-                                   VerticalOptions="Center" />
-
 
                             <!-- Calculated Total Price -->
                             <Label Text="{Binding TotalPrice, StringFormat='= {0:C}'}"
                                    Grid.Column="3"
                                    VerticalOptions="Center"/>
+                            <Button Text="X"
+                                    Command="{Binding DeleteCommand}" 
+                                    WidthRequest="24"
+                                    HeightRequest="24"
+                                    FontSize="12"
+                                    BackgroundColor="Red"
+                                    TextColor="White"
+                                    CornerRadius="12"
+                                 
+                                    HorizontalOptions="End"
+                                    VerticalOptions="Center"
+                                    Grid.Column="4"/>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
