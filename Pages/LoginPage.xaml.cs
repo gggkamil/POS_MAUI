@@ -21,12 +21,12 @@ namespace ButchersCashier.Pages
             var isAuthenticated = await _authService.LoginAsync(username, password);
             if (isAuthenticated)
             {
-                await DisplayAlert("Success", "You are logged in!", "OK");
+                
                 Application.Current.MainPage = new MainPage(username);
             }
             else
             {
-                await DisplayAlert("Error", "Invalid credentials", "OK");
+                await DisplayAlert("Błąd", "Niepoprawne hasło lub login", "OK");
             }
         }
 
@@ -36,7 +36,7 @@ namespace ButchersCashier.Pages
             var password = PasswordEntry.Text;
 
             await _authService.RegisterAsync(username, password);
-            await DisplayAlert("Success", "Registration complete!", "OK");
+            await DisplayAlert("Success", "Utworzono użytkownika!", "OK");
         }
     }
 }

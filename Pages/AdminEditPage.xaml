@@ -3,7 +3,7 @@
              x:Class="CashierApp.AdminEditPage">
 
     <VerticalStackLayout Padding="10">
-        <Label Text="Edit Product" FontSize="24" />
+        <Label Text="Aktualizuj produkt" FontSize="24" />
         <Entry x:Name="ProductNameEntry" Placeholder="Product Name" />
         <Entry x:Name="ProductCategoryEntry" Placeholder="Category" />
         <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type">
@@ -16,7 +16,7 @@
         </Picker>
         <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" />
         <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" />
-        <Button Text="Save Changes" Clicked="OnSaveChangesClicked" />
+        <Button Text="Zapisz zmiany" Clicked="OnSaveChangesClicked" />
         <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" />
     </VerticalStackLayout>
 </ContentPage>

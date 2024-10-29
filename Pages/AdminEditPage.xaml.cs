@@ -35,7 +35,7 @@ namespace CashierApp
                 string.IsNullOrWhiteSpace(ProductImagePathEntry.Text) ||
                 !decimal.TryParse(ProductPriceEntry.Text, out decimal price))
             {
-                ResultLabel.Text = "Please fill all fields correctly.";
+                ResultLabel.Text = "Proszę uzupełnić wszystkie pola.";
                 return;
             }
 
@@ -65,7 +65,7 @@ namespace CashierApp
             }
             await ProductStorage.SaveProductsAsync(products);
 
-            ResultLabel.Text = "Product updated successfully!";
+            ResultLabel.Text = "Produkt zaktualizowany!";
         }
     }
 }

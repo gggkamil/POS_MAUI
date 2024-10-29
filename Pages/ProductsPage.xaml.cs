@@ -31,7 +31,7 @@ namespace CashierApp
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to load products: {ex.Message}", "OK");
+                await DisplayAlert("Błąd", $"Problem z załadowaniem produktów: {ex.Message}", "OK");
             }
         }
 
@@ -174,7 +174,7 @@ namespace CashierApp
                 totalAmount += totalPrice;
             }
 
-            TotalLabel.Text = $"Total: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
+            TotalLabel.Text = $"Suma: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
         }
 
         private decimal GetWeightFromScale()
@@ -189,8 +189,8 @@ namespace CashierApp
             return quantityType switch
             {
                 "Low" => Colors.Red,
-                "Medium" => Colors.Yellow,
-                "High" => Colors.Green,
+                "Kilograms" => Colors.BurlyWood,
+                "Items" => Colors.Green,
                 _ => Colors.Gray,
             };
         }

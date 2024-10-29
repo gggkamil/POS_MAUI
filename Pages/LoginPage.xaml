@@ -5,9 +5,9 @@
              x:Class="ButchersCashier.Pages.LoginPage">
     <StackLayout Padding="20">
         <Label Text="Login" FontSize="24" HorizontalOptions="Center" />
-        <Entry x:Name="UsernameEntry" Placeholder="Username" />
-        <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" />
-        <Button Text="Login" Clicked="OnLoginClicked" />
-        <Button Text="Register" Clicked="OnRegisterClicked" />
+        <Entry x:Name="UsernameEntry" Placeholder="Login" />
+        <Entry x:Name="PasswordEntry" Placeholder="Hasło" IsPassword="True" />
+        <Button Text="Login" Clicked="OnLoginClicked" Margin="0,20,0,0" MaximumHeightRequest="300" MaximumWidthRequest="300"  />
+        <Button Text="Utwórz użytkownika" Clicked="OnRegisterClicked" Margin="0,5,0,0" MaximumHeightRequest="200" MaximumWidthRequest="200" />
     </StackLayout>
 </ContentPage>

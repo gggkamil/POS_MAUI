@@ -11,12 +11,12 @@
 
         <!-- Left Side: Receipt and Total -->
         <VerticalStackLayout Grid.Column="0" Padding="10">
-            <Label Text="Cashier App" FontSize="24" HorizontalOptions="Center" />
-            <Label Text="Receipt:" FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
+            <Label Text="Kasa rzeźnicza" FontSize="24" HorizontalOptions="Center" />
+            <Label Text="Rachunek:" FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
             <ScrollView>
                 <StackLayout x:Name="ReceiptList" />
             </ScrollView>
-            <Label x:Name="TotalLabel" Text="Total: 0" FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
+            <Label x:Name="TotalLabel" Text="Suma: " FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
         </VerticalStackLayout>
 
         <!-- Right Side: Product Buttons in a 4x4 Grid -->

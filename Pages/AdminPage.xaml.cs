@@ -36,14 +36,14 @@ namespace CashierApp
             // Validate inputs
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(category) || string.IsNullOrEmpty(quantityType) || string.IsNullOrEmpty(imagePath) || string.IsNullOrWhiteSpace(priceText))
             {
-                ResultLabel.Text = "Please fill all fields.";
+                ResultLabel.Text = "Proszę uzupełnić wszytkie pola.";
                 ResultLabel.TextColor = Colors.Red; // Change text color to red for error
                 return;
             }
 
             if (!decimal.TryParse(priceText, out decimal price) || price < 0)
             {
-                ResultLabel.Text = "Please enter a valid price.";
+                ResultLabel.Text = "Proszę wpisać poprawną cenę.";
                 ResultLabel.TextColor = Colors.Red; // Change text color to red for error
                 return;
             }
@@ -69,14 +69,14 @@ namespace CashierApp
                 // Save the updated list of products
                 await ProductStorage.SaveProductsAsync(existingProducts);
 
-                ResultLabel.Text = "Product added successfully!";
+                ResultLabel.Text = "Produkt dodany poprawnie!";
                 ResultLabel.TextColor = Colors.Green; // Change text color to green for success
                 ClearInputFields();
                 LoadProducts(); // Refresh the product list after adding
             }
             catch (Exception ex)
             {
-                ResultLabel.Text = $"Error: {ex.Message}";
+                ResultLabel.Text = $"Błąd: {ex.Message}";
                 ResultLabel.TextColor = Colors.Red; // Change text color to red for error
             }
         }
@@ -96,7 +96,7 @@ namespace CashierApp
         private void AddAdminEditTab(Product product)
         {
             var adminEditPage = new AdminEditPage(product);
-            parentTabbedPage.Children.Add(new NavigationPage(adminEditPage) { Title = "Edit Product" });
+            parentTabbedPage.Children.Add(new NavigationPage(adminEditPage) { Title = $"Aktualizuj {product.Name}" });
         }
         private async void OnDeleteButtonClicked(object sender, EventArgs e)
         {
@@ -106,7 +106,7 @@ namespace CashierApp
             if (productToDelete != null)
             {
                 // Confirm deletion
-                bool confirm = await DisplayAlert("Confirm Delete", $"Are you sure you want to delete {productToDelete.Name}?", "Yes", "No");
+                bool confirm = await DisplayAlert("Usuń", $"Naprawdę chcesz usunąć {productToDelete.Name}?", "Tak", "Nie");
                 if (confirm)
                 {
                     // Remove the product from the list
@@ -119,7 +119,7 @@ namespace CashierApp
                     LoadProducts();
 
                     // Show success message
-                    ResultLabel.Text = $"{productToDelete.Name} deleted successfully.";
+                    ResultLabel.Text = $"{productToDelete.Name} został usunięty.";
                     ResultLabel.TextColor = Colors.Green; // Change text color to green for success
                 }
             }
