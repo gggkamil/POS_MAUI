@@ -15,6 +15,7 @@
             </Picker.ItemsSource>
         </Picker>
         <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" />
+        <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" />
         <Button Text="Add Product" Clicked="OnAddProductClicked" />
         <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" />
     </VerticalStackLayout>

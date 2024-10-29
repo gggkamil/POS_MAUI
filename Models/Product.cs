@@ -12,5 +12,6 @@ namespace ButchersCashier.Models
         public string Category { get; set; }
         public string ImagePath { get; set; }
         public string QuantityType { get; set; }
+        public decimal Price { get; set; }
     }
 }

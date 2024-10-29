@@ -21,7 +21,7 @@ namespace CashierApp
             _authService = new LocalAuthService(); // Initialize the authentication service
             _authService.SetCurrentUser(username);
             AddProductsTab();
-            CheckUserAccess(); // Check if the user is admin and manage tabs
+            CheckUserAccess(); // AddAdminTab if user is admin
            
         }
 

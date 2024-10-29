@@ -11,6 +11,7 @@ namespace CashierApp
     {
         private decimal totalAmount = 0;
         private List<Product> products = new List<Product>();
+        private Dictionary<string, (decimal TotalPrice, decimal Quantity)> receiptItems = new();
 
         public ProductsPage()
         {
@@ -23,10 +24,7 @@ namespace CashierApp
             try
             {
                 products = await ProductStorage.LoadProductsAsync();
-                foreach (var product in products)
-                {
-                    AddProductButton(product);
-                }
+                AddProductButtons(); // Populate the grid after loading products
             }
             catch (Exception ex)
             {
@@ -34,55 +32,160 @@ namespace CashierApp
             }
         }
 
-        private void AddProductButton(Product product)
+        private void AddProductButtons()
         {
-            Button productButton = new Button
-            {
-                Text = product.Name,
-                ImageSource = product.ImagePath,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                WidthRequest = 100,
-                HeightRequest = 100
-            };
-            productButton.Clicked += OnItemClicked;
-            ProductButtonsStack.Children.Add(productButton);
-        }
+            ProductButtonsGrid.Children.Clear();
+            ProductButtonsGrid.RowDefinitions.Clear();
 
-        private void OnItemClicked(object sender, EventArgs e)
-        {
-            if (sender is Button clickedButton)
-            {
-                string itemName = clickedButton.Text;
-                decimal itemPrice = GetItemPrice(itemName);
+            int row = 0, col = 0;
+            int totalColumns = 4; // Number of columns in the grid
 
-                AddToReceipt(itemName, itemPrice);
-                totalAmount += itemPrice;
-                TotalLabel.Text = $"Total: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
+            foreach (var product in products)
+            {
+                if (col == 0) // Start a new row every four products
+                {
+                    ProductButtonsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                }
+
+                // Create a button layout with image and label
+                var productLayout = new VerticalStackLayout
+                {
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center
+                };
+
+                // Image for the product
+                var productImage = new Image
+                {
+                    Source = product.ImagePath,
+                    WidthRequest = 80,
+                    HeightRequest = 80,
+                    HorizontalOptions = LayoutOptions.Center
+                };
+
+                // Label for the product name
+                var productLabel = new Label
+                {
+                    Text = product.Name,
+                    FontSize = 12,
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    VerticalTextAlignment = TextAlignment.End,
+                    Margin = new Thickness(0, 5, 0, 0)
+                };
+
+                // Add the image and label to the button layout
+                productLayout.Children.Add(productImage);
+                productLayout.Children.Add(productLabel);
+
+                // Create a Frame for the product
+                var productFrame = new Frame
+                {
+                    BackgroundColor = GetBackgroundColorForQuantityType(product.QuantityType),
+                    Content = productLayout,
+                    Padding = 0,
+                    CornerRadius = 10,
+                    HasShadow = true
+                };
+
+                // Hook up the tap gesture
+                var tapGestureRecognizer = new TapGestureRecognizer();
+                // Pass the product to OnItemClicked
+                tapGestureRecognizer.Tapped += (s, e) => OnItemClicked(product);
+                productFrame.GestureRecognizers.Add(tapGestureRecognizer);
+
+                // Add to the grid
+                ProductButtonsGrid.Children.Add(productFrame);
+
+                // Set row and column positions
+                Grid.SetColumn(productFrame, col);
+                Grid.SetRow(productFrame, row);
+
+                col++;
+                if (col >= totalColumns) // Move to the next row after filling the columns
+                {
+                    col = 0;
+                    row++;
+                }
             }
         }
 
-        private decimal GetItemPrice(string itemName)
+        private void OnItemClicked(Product product)
         {
-            return itemName switch
+            if (product.QuantityType == "Kilograms")
             {
-                "Apple" => 0.99m,
-                "Banana" => 0.49m,
-                "Orange" => 0.79m,
-                "Watermelon" => 3.00m,
-                _ => 0
-            };
+                decimal weight = GetWeightFromScale(); // Get weight from scale
+                decimal itemPrice = product.Price * weight;
+
+                // Update receipt with weight and total price
+                UpdateReceipt(product.Name, itemPrice, weight);
+            }
+            else if (product.QuantityType == "Items")
+            {
+                decimal itemPrice = product.Price;
+                // Update receipt with count of clicks
+                UpdateReceipt(product.Name, itemPrice, 1); // Each click counts as one item
+            }
         }
 
-        private void AddToReceipt(string itemName, decimal itemPrice)
+        private void UpdateReceipt(string itemName, decimal itemPrice, decimal quantity)
         {
-            Label receiptItem = new Label
+            // Update the total price and quantity for the product
+            if (receiptItems.ContainsKey(itemName))
             {
-                Text = $"{itemName}: {itemPrice.ToString("C", CultureInfo.CurrentCulture)}",
-                FontSize = 16,
-                HorizontalOptions = LayoutOptions.Start
+                var existingItem = receiptItems[itemName];
+                existingItem.TotalPrice += itemPrice;
+                existingItem.Quantity += quantity;
+                receiptItems[itemName] = existingItem;
+            }
+            else
+            {
+                receiptItems[itemName] = (itemPrice, quantity);
+            }
+
+            // Refresh the receipt display
+            RefreshReceipt();
+        }
+
+        private void RefreshReceipt()
+        {
+            ReceiptList.Children.Clear();
+            totalAmount = 0;
+
+            foreach (var item in receiptItems)
+            {
+                string itemName = item.Key;
+                var (totalPrice, quantity) = item.Value;
+
+                Label receiptItem = new Label
+                {
+                    Text = $"{itemName}: {quantity} @ {totalPrice.ToString("C", CultureInfo.CurrentCulture)}",
+                    FontSize = 16,
+                    HorizontalOptions = LayoutOptions.Start
+                };
+
+                ReceiptList.Children.Add(receiptItem);
+                totalAmount += totalPrice;
+            }
+
+            TotalLabel.Text = $"Total: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
+        }
+
+        private decimal GetWeightFromScale()
+        {
+            // Placeholder for getting weight from an electronic scale
+            // Replace this with actual code to interface with the scale
+            return 1.0m; // Example weight
+        }
+
+        private Color GetBackgroundColorForQuantityType(string quantityType)
+        {
+            return quantityType switch
+            {
+                "Low" => Colors.Red,
+                "Medium" => Colors.Yellow,
+                "High" => Colors.Green,
+                _ => Colors.Gray,
             };
-            ReceiptList.Children.Add(receiptItem);
         }
     }
 }

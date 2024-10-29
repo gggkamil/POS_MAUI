@@ -1,38 +1,32 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CashierApp.ProductsPage" 
->
-    <VerticalStackLayout Padding="10">
-        <Label Text="Cashier App" FontSize="24" HorizontalOptions="Center" />
+             x:Class="CashierApp.ProductsPage"
+             Title="Products">
 
-        <Grid ColumnSpacing="20">
+    <Grid Padding="10" ColumnSpacing="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Side: Receipt and Total -->
+        <VerticalStackLayout Grid.Column="0" Padding="10">
+            <Label Text="Cashier App" FontSize="24" HorizontalOptions="Center" />
+            <Label Text="Receipt:" FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
+            <ScrollView>
+                <StackLayout x:Name="ReceiptList" />
+            </ScrollView>
+            <Label x:Name="TotalLabel" Text="Total: 0" FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
+        </VerticalStackLayout>
+
+        <!-- Right Side: Product Buttons in a 4x4 Grid -->
+        <Grid x:Name="ProductButtonsGrid" Grid.Column="1" ColumnSpacing="10" RowSpacing="10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
-            <VerticalStackLayout Grid.Column="0" Padding="10">
-                <Label Text="Receipt:" FontSize="20" />
-                <ScrollView>
-                    <StackLayout x:Name="ReceiptList" />
-                </ScrollView>
-                <Label x:Name="TotalLabel" 
-                       Text="Total: 0" FontSize="20"
-                       HorizontalOptions="Start" Padding="0,20,0,0"/>
-            </VerticalStackLayout>
-
-            <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackLayout x:Name="ProductButtonsStack" Grid.Column="1">
-                    <Button Clicked="OnItemClicked" x:Name="AppleButton" Text="Apple" />
-                    <Button Clicked="OnItemClicked" x:Name="BananaButton" Text="Banana" />
-                    <Button Clicked="OnItemClicked" x:Name="OrangeButton" Text="Orange" />
-                    <Button Clicked="OnItemClicked" x:Name="WatermelonButton" Text="Watermelon" />
-                </StackLayout>
-            </Grid>
         </Grid>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>
