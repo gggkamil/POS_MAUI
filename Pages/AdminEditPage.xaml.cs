@@ -9,7 +9,7 @@ namespace CashierApp
     public partial class AdminEditPage : ContentPage
     {
         private Product _product;
-
+        public string ProductName => _product.Name;
         public AdminEditPage(Product product)
         {
             InitializeComponent();

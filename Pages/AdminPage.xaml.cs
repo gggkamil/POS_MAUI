@@ -95,8 +95,26 @@ namespace CashierApp
         }
         private void AddAdminEditTab(Product product)
         {
+            // Check if a tab for this product is already open
+            var existingTab = parentTabbedPage.Children
+                .OfType<NavigationPage>()
+                .FirstOrDefault(p => p.CurrentPage is AdminEditPage adminPage && adminPage.ProductName == product.Name);
+
+            if (existingTab != null)
+            {
+                // If the tab is already open, bring it to the front
+                parentTabbedPage.CurrentPage = existingTab;
+                return; // Exit to prevent creating a new tab
+            }
+
+            // If no existing tab is found, create a new one
             var adminEditPage = new AdminEditPage(product);
-            parentTabbedPage.Children.Add(new NavigationPage(adminEditPage) { Title = $"Aktualizuj {product.Name}" });
+            var navPage = new NavigationPage(adminEditPage)
+            {
+                Title = $"Aktualizuj {product.Name}"
+            };
+
+            parentTabbedPage.Children.Add(navPage);
         }
         private async void OnDeleteButtonClicked(object sender, EventArgs e)
         {
