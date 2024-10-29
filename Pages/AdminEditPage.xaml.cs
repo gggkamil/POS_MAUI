@@ -16,7 +16,28 @@ namespace CashierApp
             _product = product;
             LoadProductData();
         }
-
+        private async void OnCloseClicked(object sender, EventArgs e)
+        {
+            // Check if the parent is a NavigationPage
+            if (Parent is NavigationPage navPage)
+            {
+                // Close the current tab if it is part of a NavigationPage
+                var tabbedPage = navPage.Parent as TabbedPage;
+                if (tabbedPage != null)
+                {
+                    tabbedPage.Children.Remove(navPage);
+                }
+            }
+            // If it’s not in a NavigationPage, just pop the modal
+            else if (Navigation.ModalStack.Contains(this))
+            {
+                await Navigation.PopModalAsync();
+            }
+            else
+            {
+                await Navigation.PopAsync(); // Fallback, though this should not normally happen
+            }
+        }
         private void LoadProductData()
         {
             ProductNameEntry.Text = _product.Name;
