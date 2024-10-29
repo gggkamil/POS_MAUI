@@ -111,8 +111,38 @@ namespace CashierApp
                 }
             }
         }
+        private async Task<decimal> PromptForWeightAsync()
+        {
+            // Display a prompt with a Cancel button
+            string result = await DisplayPromptAsync(
+                title: "Wpisz wagę",
+                message: "Proszę wpisać wagę (w kilogramach):",
+                accept: "OK",
+                cancel: "Cancel",
+                placeholder: "0.0",
+                keyboard: Keyboard.Numeric);
 
-        private void OnItemClicked(Product product)
+            if (result == null)
+            {
+                // Return 0 or handle as needed to signify canceling
+                return 0;
+            }
+
+            // Replace dot with comma for decimal separator
+            result = result.Replace(".", ",");
+
+            // Validate and return the entered weight if valid
+            if (decimal.TryParse(result, out decimal weight) && weight > 0)
+            {
+                return weight; // Return the entered weight if valid
+            }
+            else
+            {
+                await DisplayAlert("Błędne dane", "Wpisz poprawną wagę.", "OK");
+                return await PromptForWeightAsync(); // Retry if invalid
+            }
+        }
+        private async  void OnItemClicked(Product product)
         {
             // Notify that a product has been selected
             ProductSelected?.Invoke(product);
@@ -120,7 +150,8 @@ namespace CashierApp
             // Handle receipt update based on quantity type
             if (product.QuantityType == "Kilograms")
             {
-                decimal weight = GetWeightFromScale(); // Get weight from scale
+                decimal weight = await PromptForWeightAsync();
+                if (weight == 0) return;
                 decimal itemPrice = product.Price * weight;
 
                 // Update receipt with weight and total price
