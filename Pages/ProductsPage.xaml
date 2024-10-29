@@ -16,7 +16,9 @@
                 <ScrollView>
                     <StackLayout x:Name="ReceiptList" />
                 </ScrollView>
-                <Label x:Name="TotalLabel" Text="Total: 0" FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
+                <Label x:Name="TotalLabel" 
+                       Text="Total: 0" FontSize="20"
+                       HorizontalOptions="Start" Padding="0,20,0,0"/>
             </VerticalStackLayout>
 
             <Grid Grid.Column="1">
