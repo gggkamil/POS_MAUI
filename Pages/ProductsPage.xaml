@@ -16,7 +16,44 @@
             <ScrollView>
                 <StackLayout x:Name="ReceiptList" />
             </ScrollView>
-            <Label x:Name="TotalLabel" Text="Suma: " FontSize="20" HorizontalOptions="Start" Padding="0,20,0,0"/>
+            <CollectionView x:Name="ReceiptCollectionView" ItemsSource="{Binding ReceiptItems}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Item Name -->
+                            <Label Text="{Binding Name}" Grid.Column="0" VerticalOptions="Center" />
+
+                            <!-- Editable Quantity -->
+                            <Entry Text="{Binding Quantity, Mode=TwoWay}"
+                                   Keyboard="Numeric" 
+                                   Grid.Column="1"
+                                   VerticalOptions="Center"/>
+                            <Label Text="{Binding UnitPrice, StringFormat='kg/szt: {0:C}'}" 
+                                   Grid.Column="2" 
+                                   VerticalOptions="Center" />
+
+
+                            <!-- Calculated Total Price -->
+                            <Label Text="{Binding TotalPrice, StringFormat='= {0:C}'}"
+                                   Grid.Column="3"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Label x:Name="TotalLabel"
+                   Text="Suma: 0,00 zł"
+                   FontSize="20"
+                   HorizontalOptions="End"
+                   VerticalOptions="Center"
+                   Padding="10" />
         </VerticalStackLayout>
 
         <!-- Right Side: Product Buttons in a 4x4 Grid -->

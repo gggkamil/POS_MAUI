@@ -4,6 +4,8 @@ using System.Globalization;
 using ButchersCashier;
 using Microsoft.Maui.Controls;
 using ButchersCashier.Models;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace CashierApp
 {
@@ -13,9 +15,16 @@ namespace CashierApp
         private List<Product> products = new List<Product>();
         private Dictionary<string, (decimal TotalPrice, decimal Quantity)> receiptItems = new();
         public event Action<Product> ProductSelected;
+        private Dictionary<string, int> itemClickCounts = new();
+        public ObservableCollection<ReceiptItem> ReceiptItems { get; set; } = new();
         public ProductsPage()
         {
             InitializeComponent();
+            BindingContext = this;
+            foreach (var item in ReceiptItems)
+            {
+                item.PropertyChanged += OnReceiptItemChanged;
+            }
         }
         protected override async void OnAppearing()
         {
@@ -142,7 +151,7 @@ namespace CashierApp
                 return await PromptForWeightAsync(); // Retry if invalid
             }
         }
-        private async  void OnItemClicked(Product product)
+        private async void OnItemClicked(Product product)
         {
             // Notify that a product has been selected
             ProductSelected?.Invoke(product);
@@ -159,31 +168,58 @@ namespace CashierApp
             }
             else if (product.QuantityType == "Items")
             {
-                decimal itemPrice = product.Price;
-                // Update receipt with count of clicks (each click counts as one item)
-                UpdateReceipt(product.Name, itemPrice, 1);
+                // Increment the click count for this product
+                if (!itemClickCounts.ContainsKey(product.Name))
+                {
+                    itemClickCounts[product.Name] = 0; // Initialize if not present
+                }
+                itemClickCounts[product.Name]++;
+
+                // Calculate the total price based on the number of clicks
+                decimal itemPrice = product.Price * itemClickCounts[product.Name]; // Fixed price per click
+
+                // Update the receipt with the latest total price and quantity (click count)
+                UpdateReceipt(product.Name, itemPrice, itemClickCounts[product.Name]);
             }
         }
+
 
         private void UpdateReceipt(string itemName, decimal itemPrice, decimal quantity)
         {
-            // Update the total price and quantity for the product
-            if (receiptItems.ContainsKey(itemName))
+            var existingItem = ReceiptItems.FirstOrDefault(item => item.Name == itemName);
+            if (existingItem != null)
             {
-                var existingItem = receiptItems[itemName];
-                existingItem.TotalPrice += itemPrice;
-                existingItem.Quantity += quantity;
-                receiptItems[itemName] = existingItem;
+                existingItem.Quantity = quantity; // Set quantity directly from clicks
+                existingItem.UnitPrice = itemPrice / quantity; // Update the unit price if needed
             }
             else
             {
-                receiptItems[itemName] = (itemPrice, quantity);
+                var newItem = new ReceiptItem
+                {
+                    Name = itemName,
+                    Quantity = quantity,
+                    UnitPrice = itemPrice / quantity // Fixed item price divided by the number of items
+                };
+                newItem.PropertyChanged += OnReceiptItemChanged;
+                ReceiptItems.Add(newItem);
             }
 
-            // Refresh the receipt display
-            RefreshReceipt();
+            RefreshTotalAmount(); // Ensure the total is updated after adding or modifying an item
         }
 
+
+        private void RefreshTotalAmount()
+        {
+            totalAmount = ReceiptItems.Sum(item => item.TotalPrice);
+            TotalLabel.Text = $"Suma: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
+        }
+        private void OnReceiptItemChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ReceiptItem.TotalPrice))
+            {
+                RefreshTotalAmount();
+            }
+        }
         private void RefreshReceipt()
         {
             ReceiptList.Children.Clear();
