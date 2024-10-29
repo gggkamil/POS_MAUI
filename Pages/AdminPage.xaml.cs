@@ -124,6 +124,7 @@ namespace CashierApp
                 }
             }
         }
+
         private void ClearInputFields()
         {
             ProductNameEntry.Text = string.Empty;
