@@ -12,14 +12,17 @@ namespace CashierApp
         private decimal totalAmount = 0;
         private List<Product> products = new List<Product>();
         private Dictionary<string, (decimal TotalPrice, decimal Quantity)> receiptItems = new();
-
+        public event Action<Product> ProductSelected;
         public ProductsPage()
         {
             InitializeComponent();
-            LoadProducts(); // Load products on initialization
         }
-
-        private async void LoadProducts()
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await LoadProducts();
+        }
+        private async Task LoadProducts()
         {
             try
             {
@@ -111,6 +114,10 @@ namespace CashierApp
 
         private void OnItemClicked(Product product)
         {
+            // Notify that a product has been selected
+            ProductSelected?.Invoke(product);
+
+            // Handle receipt update based on quantity type
             if (product.QuantityType == "Kilograms")
             {
                 decimal weight = GetWeightFromScale(); // Get weight from scale
@@ -122,8 +129,8 @@ namespace CashierApp
             else if (product.QuantityType == "Items")
             {
                 decimal itemPrice = product.Price;
-                // Update receipt with count of clicks
-                UpdateReceipt(product.Name, itemPrice, 1); // Each click counts as one item
+                // Update receipt with count of clicks (each click counts as one item)
+                UpdateReceipt(product.Name, itemPrice, 1);
             }
         }
 
@@ -158,7 +165,7 @@ namespace CashierApp
 
                 Label receiptItem = new Label
                 {
-                    Text = $"{itemName}: {quantity} @ {totalPrice.ToString("C", CultureInfo.CurrentCulture)}",
+                    Text = $"{itemName}: {quantity} | {totalPrice.ToString("C", CultureInfo.CurrentCulture)}",
                     FontSize = 16,
                     HorizontalOptions = LayoutOptions.Start
                 };
@@ -187,5 +194,6 @@ namespace CashierApp
                 _ => Colors.Gray,
             };
         }
+
     }
 }

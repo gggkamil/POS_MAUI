@@ -1,7 +1,6 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CashierApp.AdminPage" 
-             >
+             x:Class="CashierApp.AdminPage">
     <VerticalStackLayout Padding="10">
         <Label Text="Add Product" FontSize="24" />
         <Entry x:Name="ProductNameEntry" Placeholder="Product Name" />
@@ -16,7 +15,21 @@
         </Picker>
         <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" />
         <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" />
-        <Button Text="Add Product" Clicked="OnAddProductClicked" />
+        <Button Text="Dodaj produkt" Clicked="OnAddProductClicked" />
         <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" />
+
+        <Label Text="Istniejące produkty" FontSize="24" Margin="0,20,0,0"/>
+        <CollectionView x:Name="ProductCollectionView" SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <HorizontalStackLayout Padding="10" VerticalOptions="Center">
+                        <Label Text="{Binding Name}" FontSize="18" VerticalOptions="Center" />
+                        <Label Text="{Binding Price, StringFormat=' Cena: {0:C}'}" FontSize="18" VerticalOptions="Center" />
+                        <Button Text="Edycja" Clicked="OnEditButtonClicked" CommandParameter="{Binding .}" />
+                        <Button Text="Usuń" Clicked="OnDeleteButtonClicked" CommandParameter="{Binding .}" />
+                    </HorizontalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
     </VerticalStackLayout>
 </ContentPage>
