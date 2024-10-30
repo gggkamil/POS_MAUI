@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Globalization;
 using System.Windows.Input;
 using CashierApp;
 
@@ -11,9 +12,12 @@ public class ReceiptItem : INotifyPropertyChanged
         get => _quantity;
         set
         {
-            _quantity = value;
-            OnPropertyChanged(nameof(Quantity));
-            OnPropertyChanged(nameof(TotalPrice)); // Update total when quantity changes
+            if (_quantity != value)
+            {
+                _quantity = value;
+                OnPropertyChanged(nameof(Quantity));
+                OnPropertyChanged(nameof(TotalPrice));
+            }
         }
     }
 
@@ -35,5 +39,12 @@ public class ReceiptItem : INotifyPropertyChanged
     protected void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    public void SetQuantityFromText(string text)
+    {
+        if (decimal.TryParse(text.Replace(".", ","), NumberStyles.Any, CultureInfo.CurrentCulture, out decimal parsedValue))
+        {
+            Quantity = parsedValue;
+        }
     }
 }

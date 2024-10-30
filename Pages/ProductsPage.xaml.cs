@@ -43,6 +43,34 @@ namespace CashierApp
                 await DisplayAlert("Błąd", $"Problem z załadowaniem produktów: {ex.Message}", "OK");
             }
         }
+        private void OnQuantityTextChanged(object sender, TextChangedEventArgs e)
+        {
+            var entry = (Entry)sender;
+            string input = e.NewTextValue;
+
+            // Allow the user to clear the entry without it reverting
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                // Set Quantity to zero, or handle as needed for an empty input
+                ((ReceiptItem)entry.BindingContext).Quantity = 0;
+                return;
+            }
+
+            // Normalize decimal separator for consistency
+            input = input.Replace(",", ".");
+
+            // Only update Quantity if the input is a valid decimal
+            if (decimal.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal quantity))
+            {
+                ((ReceiptItem)entry.BindingContext).Quantity = quantity;
+            }
+            else
+            {
+                // Revert to the last valid value without updating the binding property
+                entry.Text = e.OldTextValue;
+            }
+        }
+
         public void DeleteReceiptItem(ReceiptItem item)
         {
             if (ReceiptItems.Contains(item))
@@ -135,8 +163,8 @@ namespace CashierApp
                 message: "Proszę wpisać wagę (w kilogramach):",
                 accept: "OK",
                 cancel: "Cancel",
-                placeholder: "0.0",
-                keyboard: Keyboard.Numeric);
+                placeholder: "0,0",
+                keyboard: Keyboard.Default);  // Using Default to allow for both comma and dot inputs
 
             if (result == null)
             {
@@ -144,11 +172,11 @@ namespace CashierApp
                 return 0;
             }
 
-            // Replace dot with comma for decimal separator
-            result = result.Replace(".", ",");
+            // Normalize input by replacing any comma with a dot before parsing
+            result = result.Replace(",", ".");
 
             // Validate and return the entered weight if valid
-            if (decimal.TryParse(result, out decimal weight) && weight > 0)
+            if (decimal.TryParse(result, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal weight) && weight > 0)
             {
                 return weight; // Return the entered weight if valid
             }
@@ -158,6 +186,7 @@ namespace CashierApp
                 return await PromptForWeightAsync(); // Retry if invalid
             }
         }
+
         private async void OnItemClicked(Product product)
         {
             // Notify that a product has been selected

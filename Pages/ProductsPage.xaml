@@ -38,7 +38,8 @@
                             <Entry Text="{Binding Quantity, Mode=TwoWay}"
                                    Keyboard="Numeric" 
                                    Grid.Column="2"
-                                   VerticalOptions="Center"/>
+                                   VerticalOptions="Center"
+                                   TextChanged="OnQuantityTextChanged"/>
 
                             <!-- Calculated Total Price -->
                             <Label Text="{Binding TotalPrice, StringFormat='= {0:C}'}"
