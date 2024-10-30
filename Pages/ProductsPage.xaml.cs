@@ -257,36 +257,42 @@ namespace CashierApp
                 RefreshTotalAmount();
             }
         }
-        private void RefreshReceipt()
+        private async Task<bool> RequestStoragePermissionAsync()
         {
-            ReceiptList.Children.Clear();
-            totalAmount = 0;
-
-            foreach (var item in receiptItems)
+            var status = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
+            if (status != PermissionStatus.Granted)
             {
-                string itemName = item.Key;
-                var (totalPrice, quantity) = item.Value;
+                status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+            }
+            return status == PermissionStatus.Granted;
+        }
 
-                Label receiptItem = new Label
-                {
-                    Text = $"{itemName}: {quantity} | {totalPrice.ToString("C", CultureInfo.CurrentCulture)}",
-                    FontSize = 16,
-                    HorizontalOptions = LayoutOptions.Start
-                };
-
-                ReceiptList.Children.Add(receiptItem);
-                totalAmount += totalPrice;
+        private async void OnSaveAndClearReceiptClicked(object sender, EventArgs e)
+        {
+            if (!await RequestStoragePermissionAsync())
+            {
+                await DisplayAlert("Permission Denied", "Unable to save the receipt without storage permissions.", "OK");
+                return;
             }
 
-            TotalLabel.Text = $"Suma: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
+            var excelHelper = new ExcelHelper();
+            var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems);
+
+            if (filePath == null)
+            {
+                await DisplayAlert("Info", "Receipt is empty. Nothing to save.", "OK");
+                return;
+            }
+
+            // Optionally, share the file (or confirm file creation)
+            await DisplayAlert("Success", $"Receipt saved at: {filePath}", "OK");
+
+            // Clear the receipt list
+            ReceiptItems.Clear();
+            RefreshTotalAmount(); // Make sure you have this method defined to refresh the total amount display
         }
 
-        private decimal GetWeightFromScale()
-        {
-            // Placeholder for getting weight from an electronic scale
-            // Replace this with actual code to interface with the scale
-            return 1.0m; // Example weight
-        }
+
 
         private Color GetBackgroundColorForQuantityType(string quantityType)
         {

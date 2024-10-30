@@ -67,6 +67,12 @@
                    HorizontalOptions="End"
                    VerticalOptions="Center"
                    Padding="10" />
+            <Button Text="Drukuj i zapisz"
+                    Clicked="OnSaveAndClearReceiptClicked"
+                    VerticalOptions="End"
+                    HorizontalOptions="FillAndExpand"
+                    BackgroundColor="Green"
+                    TextColor="White" />
         </VerticalStackLayout>
 
         <!-- Right Side: Product Buttons in a 4x4 Grid -->

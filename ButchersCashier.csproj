@@ -48,6 +48,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="EPPlus" Version="6.2.19" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Identity.Client" Version="4.66.1" />
 		<PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.66.1" />
