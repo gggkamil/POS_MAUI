@@ -31,7 +31,7 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg"  Color="#fc0303" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
@@ -52,13 +52,6 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Identity.Client" Version="4.66.1" />
 		<PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.66.1" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Add additional images for your items -->
-		<MauiImage Include="Resources\drawable\apple.png" />
-		<MauiImage Include="Resources\drawable\banana.png" />
-		<!-- Add other item images similarly -->
 	</ItemGroup>
 
 	<ItemGroup>
