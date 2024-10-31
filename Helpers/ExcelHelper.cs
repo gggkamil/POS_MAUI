@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
+using System.Collections.ObjectModel;
 
 public class ExcelHelper
 {
-    public async Task<string> SaveReceiptToExcelAsync(IEnumerable<ReceiptItem> receiptItems)
+    public async Task<string> SaveReceiptToExcelAsync(ObservableCollection<ReceiptItem> receiptItems)
     {
         if (!receiptItems.Any())
         {

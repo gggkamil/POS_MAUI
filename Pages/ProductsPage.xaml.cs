@@ -6,6 +6,7 @@ using Microsoft.Maui.Controls;
 using ButchersCashier.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using CashierApps;
 
 namespace CashierApp
 {
@@ -17,10 +18,11 @@ namespace CashierApp
         public event Action<Product> ProductSelected;
         private Dictionary<string, int> itemClickCounts = new();
         public ObservableCollection<ReceiptItem> ReceiptItems { get; set; } = new();
-        public ProductsPage()
+        public ProductsPage(ObservableCollection<ReceiptItem> receiptItems)
         {
             InitializeComponent();
             BindingContext = this;
+            ReceiptItems = receiptItems;
             foreach (var item in ReceiptItems)
             {
                 item.PropertyChanged += OnReceiptItemChanged;
@@ -274,7 +276,7 @@ namespace CashierApp
                 await DisplayAlert("Permission Denied", "Unable to save the receipt without storage permissions.", "OK");
                 return;
             }
-
+            var excelFileListPage = new ExcelFileListPage(ReceiptItems);
             var excelHelper = new ExcelHelper();
             var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems);
 

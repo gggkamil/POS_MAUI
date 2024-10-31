@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ButchersCashier;
 using ButchersCashier.Pages;
+using CashierApps;
+using System.Collections.ObjectModel;
 
 namespace CashierApp
 {
@@ -14,13 +16,14 @@ namespace CashierApp
         private decimal totalAmount = 0; // Variable to store the total amount 
         private List<Product> products = new List<Product>(); // List to store products 
         private readonly LocalAuthService _authService; // Authentication service 
-
+        public ObservableCollection<ReceiptItem> ReceiptItems { get; set; } = new();
         public MainPage(string username)
         {
             InitializeComponent();
             _authService = new LocalAuthService(); // Initialize the authentication service 
             _authService.SetCurrentUser(username);
             AddProductsTab();
+            AddExcelListTab();
             CheckUserAccess(); // AddAdminTab if user is admin 
         }
 
@@ -37,7 +40,7 @@ namespace CashierApp
 
         private void AddProductsTab()
         {
-            var productPage = new CashierApp.ProductsPage();
+            var productPage = new CashierApp.ProductsPage(ReceiptItems); // Pass the ReceiptItems
             Children.Add(new NavigationPage(productPage) { Title = "Products" });
         }
 
@@ -71,6 +74,12 @@ namespace CashierApp
         {
             _authService.Logout(); // Clear the current user 
             Application.Current.MainPage = new LoginPage(); // Navigate back to the login page 
+        }
+        private void AddExcelListTab()
+        {
+            // Pass the ReceiptItems to the ExcelFileListPage constructor
+            var excelListPage = new ExcelFileListPage(ReceiptItems);
+            Children.Add(new NavigationPage(excelListPage) { Title = "WZ" });
         }
     }
 }
