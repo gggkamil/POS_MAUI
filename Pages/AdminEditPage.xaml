@@ -1,6 +1,7 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CashierApp.AdminEditPage">
+             x:Class="CashierApp.AdminEditPage"
+             BackgroundColor="#F0F0F0">
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Close"
                      IconImageSource="close_icon.png"
@@ -8,21 +9,29 @@
                      Order="Primary"
                      Clicked="OnCloseClicked"/>
     </ContentPage.ToolbarItems>
-    <VerticalStackLayout Padding="10">
-        <Label Text="Aktualizuj produkt" FontSize="24" />
-        <Entry x:Name="ProductNameEntry" Placeholder="Product Name" />
-        <Entry x:Name="ProductCategoryEntry" Placeholder="Category" />
-        <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type">
-            <Picker.ItemsSource>
+
+    <VerticalStackLayout Padding="10" Spacing="15">
+        <Label Text="Aktualizuj produkt" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
+
+        <Entry x:Name="ProductNameEntry" Placeholder="Product Name" BackgroundColor="White" />
+        <Entry x:Name="ProductCategoryEntry" Placeholder="Category" BackgroundColor="White" />
+
+        <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type" TitleColor="DimGrey" BackgroundColor="White" >
+            <Picker.ItemsSource >
                 <x:Array Type="{x:Type x:String}">
                     <x:String>Items</x:String>
                     <x:String>Kilograms</x:String>
                 </x:Array>
             </Picker.ItemsSource>
         </Picker>
-        <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" />
-        <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" />
-        <Button Text="Zapisz zmiany" Clicked="OnSaveChangesClicked" />
-        <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" />
+
+        <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" BackgroundColor="White" />
+        <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" BackgroundColor="White" />
+
+        <Button Text="Zapisz zmiany" Clicked="OnSaveChangesClicked" 
+                BackgroundColor="Green" TextColor="White" 
+                CornerRadius="5" HeightRequest="40" />
+
+        <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Black" HorizontalOptions="Center" />
     </VerticalStackLayout>
 </ContentPage>

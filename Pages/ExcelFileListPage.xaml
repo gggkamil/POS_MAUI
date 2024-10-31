@@ -1,21 +1,44 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CashierApps.ExcelFileListPage">
-    <CollectionView ItemsSource="{Binding ExcelFiles}">
-        <CollectionView.ItemTemplate>
-            <DataTemplate>
-                <StackLayout Orientation="Horizontal">
-                    <Label Text="{Binding FileName}" VerticalOptions="Center" />
-                    <CheckBox IsChecked="{Binding IsSelected}" CheckedChanged="OnFileCheckedChanged"/>
+             x:Class="CashierApps.ExcelFileListPage"
+             BackgroundColor="#F0F0F0"
+             Padding="10">
+    <StackLayout>
+        <CollectionView ItemsSource="{Binding ExcelFiles}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Padding="10"
+                           Margin="5"
+                           BackgroundColor="White"
+                           CornerRadius="10"
+                           HasShadow="True">
+                        <StackLayout Orientation="Horizontal" Spacing="10">
+                            <Label Text="{Binding FileName}" 
+                                   VerticalOptions="Center" 
+                                   FontSize="Medium" 
+                                   TextColor="Black" 
+                                   HorizontalOptions="StartAndExpand" />
+                            <CheckBox IsChecked="{Binding IsSelected}" 
+                                      CheckedChanged="OnFileCheckedChanged"
+                                      VerticalOptions="Center"
+                                      WidthRequest="30"   
+                                HeightRequest="30"
+                               
+                                Color="Green" />
+                                
+                        </StackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
-                    <Button Text="Drukuj i zapisz"
-                            Clicked="OnSaveButtonClicked"
-                            VerticalOptions="End"
-                            HorizontalOptions="FillAndExpand"
-                            BackgroundColor="Green"
-                            TextColor="White" />
-                </StackLayout>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+        <Button Text="Drukuj i zapisz"
+                Clicked="OnSaveButtonClicked"
+                HorizontalOptions="FillAndExpand"
+                BackgroundColor="Green"
+                TextColor="White"
+                CornerRadius="5"
+                HeightRequest="40"
+                Margin="0,10,0,0"/>
+    </StackLayout>
 </ContentPage>

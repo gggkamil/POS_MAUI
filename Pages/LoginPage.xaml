@@ -1,13 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ButchersCashier.Pages.LoginPage">
-    <StackLayout Padding="20">
-        <Label Text="Login" FontSize="24" HorizontalOptions="Center" />
-        <Entry x:Name="UsernameEntry" Placeholder="Login" />
-        <Entry x:Name="PasswordEntry" Placeholder="Hasło" IsPassword="True" />
-        <Button Text="Login" Clicked="OnLoginClicked" Margin="0,20,0,0" MaximumHeightRequest="300" MaximumWidthRequest="300"  />
-        <Button Text="Utwórz użytkownika" Clicked="OnRegisterClicked" Margin="0,5,0,0" MaximumHeightRequest="200" MaximumWidthRequest="200" />
+             x:Class="ButchersCashier.Pages.LoginPage"
+             BackgroundColor="#F0F0F0">
+    <StackLayout Padding="20" Spacing="15" VerticalOptions="FillAndExpand">
+        <Label Text="Login" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
+
+        <Entry x:Name="UsernameEntry" Placeholder="Login" BackgroundColor="White" TextColor="Black" />
+        <Entry x:Name="PasswordEntry" Placeholder="Hasło" IsPassword="True" BackgroundColor="White" TextColor="Black" />
+
+        <Button Text="Login" Clicked="OnLoginClicked" 
+                BackgroundColor="Green" TextColor="White" 
+                CornerRadius="5" HeightRequest="40" 
+                Margin="0,20,0,0" />
+
+        <StackLayout VerticalOptions="EndAndExpand" HorizontalOptions="Center">
+            <Button Text="Utwórz użytkownika" Clicked="OnRegisterClicked" 
+                    BackgroundColor="Green" TextColor="White" 
+                    CornerRadius="5" HeightRequest="30" 
+                    Margin="0,5,0,0" />
+        </StackLayout>
     </StackLayout>
 </ContentPage>

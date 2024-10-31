@@ -1,24 +1,34 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CashierApp.AdminPage">
-    <VerticalStackLayout Padding="10">
-        <Label Text="Add Product" FontSize="24" />
-        <Entry x:Name="ProductNameEntry" Placeholder="Product Name" />
-        <Entry x:Name="ProductCategoryEntry" Placeholder="Category" />
-        <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type">
-            <Picker.ItemsSource>
+             x:Class="CashierApp.AdminPage"
+             BackgroundColor="#F0F0F0"
+             Padding="10">
+    <VerticalStackLayout Spacing="15">
+        <Label Text="Add Product" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
+
+        <Entry x:Name="ProductNameEntry" Placeholder="Product Name" BackgroundColor="White" />
+        <Entry x:Name="ProductCategoryEntry" Placeholder="Category" BackgroundColor="White" />
+
+        <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type"  TitleColor="DimGrey" BackgroundColor="White">
+            <Picker.ItemsSource >
                 <x:Array Type="{x:Type x:String}">
                     <x:String>Items</x:String>
                     <x:String>Kilograms</x:String>
                 </x:Array>
             </Picker.ItemsSource>
         </Picker>
-        <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" />
-        <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" />
-        <Button Text="Dodaj produkt" Clicked="OnAddProductClicked" />
-        <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" />
 
-        <Label Text="Istniejące produkty" FontSize="24" Margin="0,20,0,0"/>
+        <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" BackgroundColor="White" />
+        <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" BackgroundColor="White" />
+
+        <Button Text="Dodaj produkt" Clicked="OnAddProductClicked" 
+                BackgroundColor="Green" TextColor="White" 
+                CornerRadius="5" HeightRequest="40" />
+
+        <Label x:Name="ResultLabel" Text="" FontSize="20" TextColor="Green" HorizontalOptions="Center" />
+
+        <Label Text="Istniejące produkty" FontSize="24" TextColor="Black" Margin="0,20,0,0" HorizontalOptions="Center"/>
+
         <CollectionView x:Name="ProductCollectionView" SelectionMode="Single"
                         VerticalOptions="FillAndExpand" HeightRequest="400">
             <CollectionView.ItemTemplate>
@@ -27,23 +37,18 @@
                         <Grid Padding="10" VerticalOptions="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <!-- Product Name -->
                                 <ColumnDefinition Width="2*" />
-                                <!-- Price -->
                                 <ColumnDefinition Width="Auto" />
-                                <!-- Edit Button -->
                                 <ColumnDefinition Width="Auto" />
-                                <!-- Delete Button -->
                             </Grid.ColumnDefinitions>
 
-                            <Label Text="{Binding Name}" FontSize="18" VerticalOptions="Center" Grid.Column="0" />
-                            <Label Text="{Binding Price, StringFormat='Cena: {0:C}'}" FontSize="18" VerticalOptions="Center" Grid.Column="1" />
+                            <Label Text="{Binding Name}" FontSize="18" VerticalOptions="Center" Grid.Column="0" TextColor="Black" />
+                            <Label Text="{Binding Price, StringFormat='Cena: {0:C}'}" FontSize="18" VerticalOptions="Center" Grid.Column="1" TextColor="Black" />
 
-                            <Button Text="Edycja" Clicked="OnEditButtonClicked" CommandParameter="{Binding .}" Grid.Column="2" />
-                            <Button Text="Usuń" Clicked="OnDeleteButtonClicked" CommandParameter="{Binding .}" Grid.Column="3" />
+                            <Button Text="Edycja" Clicked="OnEditButtonClicked" CommandParameter="{Binding .}" Grid.Column="2" BackgroundColor="LightGray" TextColor="Black" CornerRadius="5" />
+                            <Button Text="Usuń" Clicked="OnDeleteButtonClicked" CommandParameter="{Binding .}" Grid.Column="3" BackgroundColor="Red" TextColor="White" CornerRadius="5" />
                         </Grid>
 
-                        <!-- Separator Line -->
                         <BoxView HeightRequest="1" BackgroundColor="Gray" HorizontalOptions="FillAndExpand" />
                     </StackLayout>
                 </DataTemplate>

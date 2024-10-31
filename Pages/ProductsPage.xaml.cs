@@ -119,26 +119,29 @@ namespace CashierApp
                 var productLayout = new VerticalStackLayout
                 {
                     HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.Center
+                    VerticalOptions = LayoutOptions.Center,
+                    Spacing = 5 // Add spacing between image and label
                 };
 
                 // Image for the product
                 var productImage = new Image
                 {
                     Source = product.ImagePath,
-                    WidthRequest = 80,
-                    HeightRequest = 80,
-                    HorizontalOptions = LayoutOptions.Center
+                    WidthRequest = 100, // Increased width
+                    HeightRequest = 100, // Increased height
+                    HorizontalOptions = LayoutOptions.Center,
+                    Aspect = Aspect.AspectFit // Maintain aspect ratio
                 };
 
                 // Label for the product name
                 var productLabel = new Label
                 {
                     Text = product.Name,
-                    FontSize = 12,
+                    FontSize = 14, // Increased font size for visibility
                     HorizontalTextAlignment = TextAlignment.Center,
-                    VerticalTextAlignment = TextAlignment.End,
-                    Margin = new Thickness(0, 5, 0, 0)
+                    VerticalTextAlignment = TextAlignment.Center, // Center vertically
+                    Margin = new Thickness(0, 5, 0, 0),
+                    TextColor = Colors.Black // Ensure text color is black
                 };
 
                 // Add the image and label to the button layout
@@ -150,14 +153,15 @@ namespace CashierApp
                 {
                     BackgroundColor = GetBackgroundColorForQuantityType(product.QuantityType),
                     Content = productLayout,
-                    Padding = 0,
+                    Padding = 10, // Padding around the content
                     CornerRadius = 10,
-                    HasShadow = true
+                    HasShadow = true,
+                    WidthRequest = 180, // Increased width for uniformity
+                    HeightRequest = 160 // Increased height to accommodate the label
                 };
 
                 // Hook up the tap gesture
                 var tapGestureRecognizer = new TapGestureRecognizer();
-                // Pass the product to OnItemClicked
                 tapGestureRecognizer.Tapped += (s, e) => OnItemClicked(product);
                 productFrame.GestureRecognizers.Add(tapGestureRecognizer);
 
@@ -176,6 +180,7 @@ namespace CashierApp
                 }
             }
         }
+
         private async Task<decimal> PromptForWeightAsync()
         {
             // Display a prompt with a Cancel button
