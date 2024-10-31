@@ -53,9 +53,16 @@ namespace CashierApps
         {
             var selectedFilePath = GetSelectedFilePath(); // Get the selected file path
 
-            if (!string.IsNullOrEmpty(selectedFilePath))
+            if (string.IsNullOrEmpty(selectedFilePath))
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                return;
+            }
+            if (ReceiptItems.Count == 0)
+            {
+                await DisplayAlert("Warning", "No items to save!", "OK");
+                return;
+            }
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 using (var package = new ExcelPackage(new FileInfo(selectedFilePath)))
                 {
@@ -76,11 +83,7 @@ namespace CashierApps
                     }
 
                     // Check if there are any receipt items
-                    if (ReceiptItems.Count == 0)
-                    {
-                        await DisplayAlert("Warning", "No items to save!", "OK");
-                        return;
-                    }
+
 
                     // Add each receipt item to the worksheet
                     foreach (var item in ReceiptItems)
@@ -105,13 +108,9 @@ namespace CashierApps
                 }
 
                 // Optionally clear the ReceiptItems after saving
-                ReceiptItems.Clear(); // Uncomment this line if you want to clear items after saving
+                //ReceiptItems.Clear(); // Uncomment this line if you want to clear items after saving
                 await DisplayAlert("Success", "Receipt saved successfully!", "OK");
-            }
-            else
-            {
-                await DisplayAlert("Information", "No Excel file selected. Receipt not saved.", "OK");
-            }
+
         }
 
         // Event handler for Save button (change this to your existing save button's Clicked event)

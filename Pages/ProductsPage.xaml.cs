@@ -6,6 +6,7 @@ using Microsoft.Maui.Controls;
 using ButchersCashier.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using CashierApps;
 
 namespace CashierApp
@@ -17,15 +18,33 @@ namespace CashierApp
         private Dictionary<string, (decimal TotalPrice, decimal Quantity)> receiptItems = new();
         public event Action<Product> ProductSelected;
         private Dictionary<string, int> itemClickCounts = new();
-        public ObservableCollection<ReceiptItem> ReceiptItems { get; set; } = new();
+        private ObservableCollection<ReceiptItem> _receiptItems;
+        public ObservableCollection<ReceiptItem> ReceiptItems
+        {
+            get => _receiptItems;
+            set
+            {
+                if (_receiptItems != value)
+                {
+                    _receiptItems = value;
+                    OnPropertyChanged(nameof(ReceiptItems)); // Notify UI of the change
+                }
+            }
+        }
+
         public ProductsPage(ObservableCollection<ReceiptItem> receiptItems)
         {
             InitializeComponent();
             BindingContext = this;
-            ReceiptItems = receiptItems;
+
+            // Assigning the new receiptItems to the property and notifying the change
+            _receiptItems = receiptItems;
+            OnPropertyChanged(nameof(ReceiptItems)); // Notify change to the UI
+            Debug.WriteLine($"ReceiptItems Count after assignment: {ReceiptItems.Count}");
             foreach (var item in ReceiptItems)
             {
                 item.PropertyChanged += OnReceiptItemChanged;
+                Debug.WriteLine($"Item: {item.Name}, Quantity: {item.Quantity}");
             }
         }
         protected override async void OnAppearing()
