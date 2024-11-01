@@ -1,4 +1,5 @@
 ﻿using ButchersCashier.Auth;
+using ButchersCashier.Services;
 using CashierApp;
 using Microsoft.Maui.Controls;
 
@@ -7,10 +8,11 @@ namespace ButchersCashier.Pages
     public partial class LoginPage : ContentPage
     {
         private readonly LocalAuthService _authService = new LocalAuthService();
-
-        public LoginPage()
+        private readonly IReceiptSaveService _receiptSaveService;
+        public LoginPage(IReceiptSaveService receiptSaveService)
         {
             InitializeComponent();
+            _receiptSaveService = receiptSaveService;
         }
 
         private async void OnLoginClicked(object sender, EventArgs e)
@@ -22,7 +24,7 @@ namespace ButchersCashier.Pages
             if (isAuthenticated)
             {
                 
-                Application.Current.MainPage = new MainPage(username);
+                Application.Current.MainPage = new MainPage(username, _receiptSaveService);
             }
             else
             {

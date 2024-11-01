@@ -7,6 +7,7 @@ using ButchersCashier.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using ButchersCashier.Services;
 using CashierApps;
 
 namespace CashierApp
@@ -19,6 +20,7 @@ namespace CashierApp
         public event Action<Product> ProductSelected;
         private Dictionary<string, int> itemClickCounts = new();
         private ObservableCollection<ReceiptItem> _receiptItems;
+        private readonly IReceiptSaveService _receiptSaveService;
         public ObservableCollection<ReceiptItem> ReceiptItems
         {
             get => _receiptItems;
@@ -28,11 +30,12 @@ namespace CashierApp
                 {
                     _receiptItems = value;
                     OnPropertyChanged(nameof(ReceiptItems)); // Notify UI of the change
+
                 }
             }
         }
 
-        public ProductsPage(ObservableCollection<ReceiptItem> receiptItems)
+        public ProductsPage(ObservableCollection<ReceiptItem> receiptItems, IReceiptSaveService receiptSaveService)
         {
             InitializeComponent();
             BindingContext = this;
@@ -46,6 +49,7 @@ namespace CashierApp
                 item.PropertyChanged += OnReceiptItemChanged;
                 Debug.WriteLine($"Item: {item.Name}, Quantity: {item.Quantity}");
             }
+            _receiptSaveService = receiptSaveService;
         }
         protected override async void OnAppearing()
         {
@@ -300,10 +304,10 @@ namespace CashierApp
                 await DisplayAlert("Permission Denied", "Unable to save the receipt without storage permissions.", "OK");
                 return;
             }
-            var excelFileListPage = new ExcelFileListPage(ReceiptItems);
+            await _receiptSaveService.RequestSaveAsync();
             var excelHelper = new ExcelHelper();
             var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems);
-
+            MessagingCenter.Send(this, "SaveReceiptItems");
             if (filePath == null)
             {
                 await DisplayAlert("Info", "Receipt is empty. Nothing to save.", "OK");
@@ -311,7 +315,7 @@ namespace CashierApp
             }
 
             // Optionally, share the file (or confirm file creation)
-            await DisplayAlert("Success", $"Receipt saved at: {filePath}", "OK");
+            await DisplayAlert("Success", $"Rachunek zapisany w : {filePath}", "OK");
 
             // Clear the receipt list
             ReceiptItems.Clear();

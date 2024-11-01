@@ -8,6 +8,7 @@ using ButchersCashier;
 using ButchersCashier.Pages;
 using CashierApps;
 using System.Collections.ObjectModel;
+using ButchersCashier.Services;
 
 namespace CashierApp
 {
@@ -16,15 +17,21 @@ namespace CashierApp
         private decimal totalAmount = 0; // Variable to store the total amount 
         private List<Product> products = new List<Product>(); // List to store products 
         private readonly LocalAuthService _authService; // Authentication service 
+        private readonly IReceiptSaveService _receiptSaveService; // Add the ReceiptSaveService dependency
+
         public ObservableCollection<ReceiptItem> ReceiptItems { get; set; } = new();
-        public MainPage(string username)
+
+        // Update MainPage constructor to accept IReceiptSaveService
+        public MainPage(string username, IReceiptSaveService receiptSaveService)
         {
             InitializeComponent();
-            _authService = new LocalAuthService(); // Initialize the authentication service 
+            _authService = new LocalAuthService();
             _authService.SetCurrentUser(username);
+            _receiptSaveService = receiptSaveService; // Initialize the receipt save service
+
             AddProductsTab();
             AddExcelListTab();
-            CheckUserAccess(); // AddAdminTab if user is admin 
+            CheckUserAccess();
         }
 
         private void CheckUserAccess()
@@ -32,15 +39,13 @@ namespace CashierApp
             string currentUser = _authService.GetCurrentUsername();
             if (!string.IsNullOrEmpty(currentUser) && currentUser.Equals("admin", StringComparison.OrdinalIgnoreCase))
             {
-                AddAdminTab(); // Add the Admin tab only for admin users 
-
-
+                AddAdminTab();
             }
         }
 
         private void AddProductsTab()
         {
-            var productPage = new CashierApp.ProductsPage(ReceiptItems); // Pass the ReceiptItems
+            var productPage = new CashierApp.ProductsPage(ReceiptItems, _receiptSaveService);
             Children.Add(new NavigationPage(productPage) { Title = "Products" });
         }
 
@@ -60,25 +65,25 @@ namespace CashierApp
 
         private void AddAdminTab()
         {
-            var adminPage = new CashierApp.AdminPage(this); // Pass the current instance of MainPage
+            var adminPage = new CashierApp.AdminPage(this);
             Children.Add(new NavigationPage(adminPage) { Title = "Admin" });
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-
         }
 
         private async void OnLogoutClicked(object sender, EventArgs e)
         {
-            _authService.Logout(); // Clear the current user 
-            Application.Current.MainPage = new LoginPage(); // Navigate back to the login page 
+            _authService.Logout();
+            Application.Current.MainPage = new LoginPage(_receiptSaveService);
         }
+
         private void AddExcelListTab()
         {
-            // Pass the ReceiptItems to the ExcelFileListPage constructor
-            var excelListPage = new ExcelFileListPage(ReceiptItems);
+            // Pass both ReceiptItems and IReceiptSaveService to ExcelFileListPage
+            var excelListPage = new ExcelFileListPage(ReceiptItems, _receiptSaveService);
             Children.Add(new NavigationPage(excelListPage) { Title = "WZ" });
         }
     }

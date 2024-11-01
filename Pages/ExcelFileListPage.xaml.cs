@@ -5,22 +5,30 @@ using ButchersCashier.Models;
 using Microsoft.Maui.Controls;
 using OfficeOpenXml; // Ensure you have the EPPlus library for Excel manipulation
 using System.Threading.Tasks;
+using ButchersCashier.Services;
+using CashierApp;
 
 namespace CashierApps
 {
     public partial class ExcelFileListPage : ContentPage
     {
-        public ObservableCollection<ExcelFile> ExcelFiles { get; set; } = new();
+        public ObservableCollection<ExcelFile> ExcelFiles { get; set; } = new ObservableCollection<ExcelFile>();
 
         // Reference to the receipt items from ProductsPage
         public ObservableCollection<ReceiptItem> ReceiptItems { get; private set; }
-
-        public ExcelFileListPage(ObservableCollection<ReceiptItem> receiptItems) // Constructor with parameter
+        private readonly IReceiptSaveService _receiptSaveService;
+        public ExcelFileListPage(ObservableCollection<ReceiptItem> receiptItems, IReceiptSaveService receiptSaveService) // Constructor with parameter
         {
             InitializeComponent();
             BindingContext = this;
             ReceiptItems = receiptItems; // Assign the passed receipt items
             LoadExcelFiles(); // Load existing Excel files
+            _receiptSaveService = receiptSaveService;
+            _receiptSaveService.OnSaveRequested += SaveReceiptItemsToSelectedFileAsync;
+            MessagingCenter.Subscribe<ProductsPage>(this, "SaveReceiptItems", async (sender) =>
+            {
+                await SaveReceiptItemsToSelectedFileAsync();
+            });
         }
 
         private void LoadExcelFiles()
@@ -133,6 +141,11 @@ namespace CashierApps
                     file.IsSelected = file == selectedFile && e.Value;
                 }
             }
+        }
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            _receiptSaveService.OnSaveRequested -= SaveReceiptItemsToSelectedFileAsync;
         }
     }
 }

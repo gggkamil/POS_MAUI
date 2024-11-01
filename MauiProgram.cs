@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ButchersCashier.Services;
+using Microsoft.Extensions.Logging;
 
 namespace ButchersCashier
 {
@@ -17,6 +18,8 @@ namespace ButchersCashier
 
 #if DEBUG
     		builder.Logging.AddDebug();
+            builder.Services.AddSingleton<IReceiptSaveService, ReceiptSaveService>();
+            builder.Services.AddSingleton<ReceiptService>();
 #endif
 
             return builder.Build();
