@@ -100,6 +100,10 @@ namespace CashierApp
         {
             if (ReceiptItems.Contains(item))
             {
+                if (itemClickCounts.ContainsKey(item.Name))
+                {
+                    itemClickCounts[item.Name] = 0;
+                }
                 ReceiptItems.Remove(item); 
                 RefreshTotalAmount(); 
             }
