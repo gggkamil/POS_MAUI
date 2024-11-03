@@ -33,6 +33,7 @@ namespace CashierApp
             string imagePath = ProductImagePathEntry.Text;
             string priceText = ProductPriceEntry.Text;
 
+            priceText = priceText.Replace('.', ',');
             // Validate inputs
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(category) || string.IsNullOrEmpty(quantityType) || string.IsNullOrEmpty(imagePath) || string.IsNullOrWhiteSpace(priceText))
             {
