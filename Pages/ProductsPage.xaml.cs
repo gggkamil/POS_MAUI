@@ -43,11 +43,9 @@ namespace CashierApp
             // Assigning the new receiptItems to the property and notifying the change
             _receiptItems = receiptItems;
             OnPropertyChanged(nameof(ReceiptItems)); // Notify change to the UI
-            Debug.WriteLine($"ReceiptItems Count after assignment: {ReceiptItems.Count}");
             foreach (var item in ReceiptItems)
             {
                 item.PropertyChanged += OnReceiptItemChanged;
-                Debug.WriteLine($"Item: {item.Name}, Quantity: {item.Quantity}");
             }
             _receiptSaveService = receiptSaveService;
         }
@@ -181,7 +179,7 @@ namespace CashierApp
                 Grid.SetRow(productFrame, row);
 
                 col++;
-                if (col >= totalColumns) // Move to the next row after filling the columns
+                if (col >= totalColumns) 
                 {
                     col = 0;
                     row++;
@@ -314,16 +312,16 @@ namespace CashierApp
             MessagingCenter.Send(this, "SaveReceiptItems");
             if (filePath == null)
             {
-                await DisplayAlert("Info", "Receipt is empty. Nothing to save.", "OK");
+                await DisplayAlert("Info", "Rachunek jest pusty. Nic do zapisania.", "OK");
                 return;
             }
 
-            // Optionally, share the file (or confirm file creation)
-            await DisplayAlert("Success", $"Rachunek zapisany w : {filePath}", "OK");
+         
+            await DisplayAlert("Sukces!", $"Rachunek zapisany w : {filePath}", "OK");
 
-            // Clear the receipt list
+          
             ReceiptItems.Clear();
-            RefreshTotalAmount(); // Make sure you have this method defined to refresh the total amount display
+            RefreshTotalAmount(); 
         }
 
 

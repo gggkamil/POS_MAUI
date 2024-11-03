@@ -67,7 +67,7 @@ namespace CashierApps
             }
             if (ReceiptItems.Count == 0)
             {
-                await DisplayAlert("Warning", "No items to save!", "OK");
+                await DisplayAlert("WZ", "Brak produktów do zapisania", "OK");
                 return;
             }
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -82,10 +82,10 @@ namespace CashierApps
                     // If starting row is 1, this means the worksheet is empty, add headers
                     if (startRow == 1)
                     {
-                        worksheet.Cells[1, 1].Value = "Product Name";
-                        worksheet.Cells[1, 2].Value = "Quantity";
-                        worksheet.Cells[1, 3].Value = "Unit Price";
-                        worksheet.Cells[1, 4].Value = "Total Price";
+                        worksheet.Cells[1, 1].Value = "Produkt";
+                        worksheet.Cells[1, 2].Value = "Ilość";
+                        worksheet.Cells[1, 3].Value = "Cena jednostkowa";
+                        worksheet.Cells[1, 4].Value = "Cena końcowa";
                         worksheet.Cells[1, 1, 1, 4].Style.Font.Bold = true;
                         startRow = 2; // Move to the next row for data
                     }
@@ -104,7 +104,7 @@ namespace CashierApps
                     }
 
                     // Optional: Add a formula for the total
-                    worksheet.Cells[startRow, 3].Value = "Total";
+                    worksheet.Cells[startRow, 3].Value = "Suma";
                     worksheet.Cells[startRow, 4].Formula = $"SUM(D2:D{startRow - 1})";
                     worksheet.Cells[startRow, 3, startRow, 4].Style.Font.Bold = true;
 
@@ -117,7 +117,7 @@ namespace CashierApps
 
                 // Optionally clear the ReceiptItems after saving
                 //ReceiptItems.Clear(); // Uncomment this line if you want to clear items after saving
-                await DisplayAlert("Success", "Receipt saved successfully!", "OK");
+                await DisplayAlert("WZ", "Rachunek dodano do WZ!", "OK");
 
         }
 
