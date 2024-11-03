@@ -52,10 +52,15 @@ namespace CashierApp
             {
                 // Load existing products
                 var existingProducts = await ProductStorage.LoadProductsAsync();
-
+                int newId = existingProducts
+                    .Where(p => p.Id != null)
+                    .Select(p => int.TryParse(p.Id, out int id) ? id : 0)
+                    .DefaultIfEmpty(0)
+                    .Max() + 1;
                 // Create a new product
                 Product newProduct = new Product
                 {
+                    Id = newId.ToString(),
                     Name = name,
                     Category = category,
                     ImagePath = imagePath,

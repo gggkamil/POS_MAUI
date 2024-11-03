@@ -9,7 +9,7 @@
         <Entry x:Name="ProductNameEntry" Placeholder="Nazwa produktu" BackgroundColor="White" TextColor="Black"/>
         <Entry x:Name="ProductCategoryEntry" Placeholder="Kategoria" BackgroundColor="White" TextColor="Black" />
 
-        <Picker x:Name="QuantityTypePicker" Title="Wybierz jednostkę"  TitleColor="DimGrey" BackgroundColor="White">
+        <Picker x:Name="QuantityTypePicker" Title="Wybierz jednostkę"  TitleColor="DimGrey" BackgroundColor="White" TextColor="Black">
             <Picker.ItemsSource >
                 <x:Array Type="{x:Type x:String}">
                     <x:String>Items</x:String>
