@@ -13,10 +13,10 @@
     <VerticalStackLayout Padding="10" Spacing="15">
         <Label Text="Aktualizuj produkt" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
 
-        <Entry x:Name="ProductNameEntry" Placeholder="Product Name" BackgroundColor="White" />
-        <Entry x:Name="ProductCategoryEntry" Placeholder="Category" BackgroundColor="White" />
+        <Entry x:Name="ProductNameEntry" Placeholder="Nazwa produktu" BackgroundColor="White" TextColor="Black"/>
+        <Entry x:Name="ProductCategoryEntry" Placeholder="Kategoria" BackgroundColor="White" TextColor="Black" />
 
-        <Picker x:Name="QuantityTypePicker" Title="Select Quantity Type" TitleColor="DimGrey" BackgroundColor="White" >
+        <Picker x:Name="QuantityTypePicker" Title="Wybierz jednostkę" TitleColor="DimGrey" BackgroundColor="White" >
             <Picker.ItemsSource >
                 <x:Array Type="{x:Type x:String}">
                     <x:String>Items</x:String>
@@ -25,8 +25,8 @@
             </Picker.ItemsSource>
         </Picker>
 
-        <Entry x:Name="ProductImagePathEntry" Placeholder="Image Path" BackgroundColor="White" />
-        <Entry x:Name="ProductPriceEntry" Placeholder="Price" Keyboard="Numeric" BackgroundColor="White" />
+        <Entry x:Name="ProductImagePathEntry" Placeholder="Ścieżka do zdjęcia" BackgroundColor="White" TextColor="Black"/>
+        <Entry x:Name="ProductPriceEntry" Placeholder="Cena" Keyboard="Numeric" BackgroundColor="White" TextColor="Black" />
 
         <Button Text="Zapisz zmiany" Clicked="OnSaveChangesClicked" 
                 BackgroundColor="Green" TextColor="White" 

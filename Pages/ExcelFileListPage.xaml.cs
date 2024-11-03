@@ -129,16 +129,16 @@ namespace CashierApps
 
         private void OnFileCheckedChanged(object sender, CheckedChangedEventArgs e)
         {
-            // Find the ExcelFile object associated with this checkbox
-            var checkbox = (CheckBox)sender;
-            var selectedFile = checkbox.BindingContext as ExcelFile;
+            var selectedFile = (sender as CheckBox)?.BindingContext as ExcelFile;
 
-            if (selectedFile != null)
+            if (selectedFile == null || !selectedFile.IsSelected) return;
+
+            // Unselect all other files
+            foreach (var file in ExcelFiles)
             {
-                // Deselect all other files if one is selected
-                foreach (var file in ExcelFiles)
+                if (file != selectedFile && file.IsSelected)
                 {
-                    file.IsSelected = file == selectedFile && e.Value;
+                    file.IsSelected = false;
                 }
             }
         }
