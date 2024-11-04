@@ -7,6 +7,7 @@ using ButchersCashier.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using ButchersCashier.Services;
 using CashierApps;
 
@@ -21,6 +22,7 @@ namespace CashierApp
         private Dictionary<string, int> itemClickCounts = new();
         private ObservableCollection<ReceiptItem> _receiptItems;
         private readonly IReceiptSaveService _receiptSaveService;
+        private readonly ReceiptPrinterService _receiptPrinterService;
         public ObservableCollection<ReceiptItem> ReceiptItems
         {
             get => _receiptItems;
@@ -48,6 +50,7 @@ namespace CashierApp
                 item.PropertyChanged += OnReceiptItemChanged;
             }
             _receiptSaveService = receiptSaveService;
+            _receiptPrinterService = new ReceiptPrinterService("CITIZEN NAZWA");
         }
         protected override async void OnAppearing()
         {
@@ -306,23 +309,37 @@ namespace CashierApp
                 await DisplayAlert("Permission Denied", "Unable to save the receipt without storage permissions.", "OK");
                 return;
             }
+
             await _receiptSaveService.RequestSaveAsync();
             var excelHelper = new ExcelHelper();
             var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems);
             MessagingCenter.Send(this, "SaveReceiptItems");
+
             if (filePath == null)
             {
                 await DisplayAlert("Info", "Rachunek jest pusty. Nic do zapisania.", "OK");
                 return;
             }
 
-         
             await DisplayAlert("Sukces!", $"Rachunek zapisany w : {filePath}", "OK");
 
-          
+           
+            string receiptText = GenerateReceiptText();
+
+            try
+            {
+                PrintReceiptAndroid(receiptText);
+                await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Błąd drukowania", $"Nie udało się wydrukować rachunku: {ex.Message}", "OK");
+            }
+
             ReceiptItems.Clear();
-            RefreshTotalAmount(); 
+            RefreshTotalAmount();
         }
+
 
 
 
@@ -336,6 +353,35 @@ namespace CashierApp
                 _ => Colors.Gray,
             };
         }
+        private string GenerateReceiptText()
+        {
+            var receiptText = new StringBuilder();
+            receiptText.AppendLine("---- Rachunek ----");
+            receiptText.AppendLine("Produkt\tIlość\tCena");
+
+            foreach (var item in ReceiptItems)
+            {
+                receiptText.AppendLine($"{item.Name}\t{item.Quantity}\t{item.TotalPrice:C}");
+            }
+
+            receiptText.AppendLine("-----------------");
+            receiptText.AppendLine($"Suma: {totalAmount:C}");
+            return receiptText.ToString();
+        }
+        private void PrintReceiptAndroid(string receiptText)
+        {
+#if ANDROID
+            // Get the PrintManager service from the Android application context
+            var printManager = (Android.Print.PrintManager)Android.App.Application.Context.GetSystemService(Android.Content.Context.PrintService);
+
+            // Create an instance of your custom PrintDocumentAdapter
+            var printAdapter = new ReceiptPrintDocumentAdapter(receiptText);
+
+            // Start the print job
+            printManager.Print("Receipt Print Job", printAdapter, null);
+#endif
+        }
+
 
     }
 }
