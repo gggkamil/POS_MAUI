@@ -12,8 +12,8 @@
         <Picker x:Name="QuantityTypePicker" Title="Wybierz jednostkę"  TitleColor="DimGrey" BackgroundColor="White" TextColor="Black">
             <Picker.ItemsSource >
                 <x:Array Type="{x:Type x:String}">
-                    <x:String>Items</x:String>
-                    <x:String>Kilograms</x:String>
+                    <x:String>Sztuki</x:String>
+                    <x:String>Kilogramy</x:String>
                 </x:Array>
             </Picker.ItemsSource>
         </Picker>

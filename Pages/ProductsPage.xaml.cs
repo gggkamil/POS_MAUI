@@ -42,9 +42,9 @@ namespace CashierApp
             InitializeComponent();
             BindingContext = this;
 
-            // Assigning the new receiptItems to the property and notifying the change
+            
             _receiptItems = receiptItems;
-            OnPropertyChanged(nameof(ReceiptItems)); // Notify change to the UI
+            OnPropertyChanged(nameof(ReceiptItems)); 
             foreach (var item in ReceiptItems)
             {
                 item.PropertyChanged += OnReceiptItemChanged;
@@ -228,7 +228,7 @@ namespace CashierApp
             ProductSelected?.Invoke(product);
 
             // Handle receipt update based on quantity type
-            if (product.QuantityType == "Kilograms")
+            if (product.QuantityType == "Kilogramy")
             {
                 decimal weight = await PromptForWeightAsync();
                 if (weight == 0) return;
@@ -237,7 +237,7 @@ namespace CashierApp
                 // Update receipt with weight and total price
                 UpdateReceipt(product.Name, itemPrice, weight);
             }
-            else if (product.QuantityType == "Items")
+            else if (product.QuantityType == "Sztuki")
             {
                 // Increment the click count for this product
                 if (!itemClickCounts.ContainsKey(product.Name))
@@ -328,7 +328,7 @@ namespace CashierApp
 
         private async void OnSaveAndClearReceiptClicked(object sender, EventArgs e)
         {
-          
+            
             string customerName = await PromptForNameAsync();
 
             if (customerName == null)
@@ -346,7 +346,7 @@ namespace CashierApp
             }
 
             await _receiptSaveService.RequestSaveAsync();
-            var excelHelper = new ExcelHelper();
+                var excelHelper = new ExcelHelper();
             var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems);
             MessagingCenter.Send(this, "SaveReceiptItems");
 
@@ -359,20 +359,24 @@ namespace CashierApp
             await DisplayAlert("Sukces!", $"Rachunek zapisany w : {filePath}", "OK");
 
            
-            string receiptText = GenerateReceiptText(customerName);
-
-            try
-            {
-                await _receiptPrinterService.PrintReceiptAsync(receiptText);
-                await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Błąd drukowania", $"Nie udało się wydrukować rachunku: {ex.Message}", "OK");
-            }
+            string receiptText = GenerateReceiptText(customerName,filePath);
+            string txtFilePath = await SaveReceiptToTextFileAsync(receiptText);
+            //try
+            //{
+            //    await _receiptPrinterService.PrintReceiptAsync(receiptText);
+            //    await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
+            //}
+            //catch (Exception ex)
+            //{
+            //    await DisplayAlert("Błąd drukowania", $"Nie udało się wydrukować rachunku: {ex.Message}", "OK");
+            //}
 
             ReceiptItems.Clear();
             RefreshTotalAmount();
+            foreach (var key in itemClickCounts.Keys.ToList())
+            {
+                itemClickCounts[key] = 0;
+            }
         }
 
 
@@ -383,16 +387,17 @@ namespace CashierApp
         {
             return quantityType switch
             {
-                "Low" => Colors.Red,
-                "Kilograms" => Colors.BurlyWood,
-                "Items" => Colors.Green,
+                
+                "Kilogramy" => Colors.BurlyWood,
+                "Sztuki" => Colors.Green,
                 _ => Colors.Gray,
             };
         }
-        private string GenerateReceiptText(string customerName)
+        private string GenerateReceiptText(string customerName,string filePath)
         {
+            
             var receiptText = new StringBuilder();
-
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
             receiptText.AppendLine("---- Rachunek ----");
             receiptText.AppendLine($"Klient: {customerName}");
             receiptText.AppendLine("Produkt\tIlość\tCena");
@@ -404,13 +409,29 @@ namespace CashierApp
 
             receiptText.AppendLine("-----------------");
             receiptText.AppendLine($"Suma: {totalAmount:C}");
+            receiptText.AppendLine($"{fileName}");
 
             return receiptText.ToString();
         }
 
-        private void PrintReceiptAndroid(string receiptText)
+        private async Task<string> SaveReceiptToTextFileAsync(string receiptText) //TODO DELETE after testes
         {
+            try
+            {
+             
+                string fileName = $"Rachunek_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                string filePath = Path.Combine(FileSystem.Current.AppDataDirectory, fileName);
 
+               
+                await File.WriteAllTextAsync(filePath, receiptText);
+
+                return filePath; 
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Could not save the receipt: {ex.Message}", "OK");
+                return null;
+            }
         }
 
 
