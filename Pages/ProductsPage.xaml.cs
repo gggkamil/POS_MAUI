@@ -285,6 +285,30 @@ namespace CashierApp
             totalAmount = ReceiptItems.Sum(item => item.TotalPrice);
             TotalLabel.Text = $"Suma: {totalAmount.ToString("C", CultureInfo.CurrentCulture)}";
         }
+        private async Task<string> PromptForNameAsync()
+        {
+            string result = await DisplayPromptAsync(
+                title: "Wpisz imię i nazwisko klienta:",
+                message: "Proszę wpisać imię i nazwisko:",
+                accept: "OK",
+                cancel: "Cancel",
+                placeholder: "imię i nazwisko",
+                keyboard: Keyboard.Default);
+
+            if (result == null)
+            {
+                return null;
+            }
+            if (result != null)
+            {
+                return result;
+            }
+            else
+            {
+                await DisplayAlert("Błędne dane", "Wpisz poprawne imię.", "OK");
+                return await PromptForNameAsync();
+            }
+        }
         private void OnReceiptItemChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ReceiptItem.TotalPrice))
@@ -304,6 +328,17 @@ namespace CashierApp
 
         private async void OnSaveAndClearReceiptClicked(object sender, EventArgs e)
         {
+          
+            string customerName = await PromptForNameAsync();
+
+            if (customerName == null)
+            {
+             
+                await DisplayAlert("Anulowano", "Brak imienia, nie można kontynuować.", "OK");
+                return;
+            }
+
+           
             if (!await RequestStoragePermissionAsync())
             {
                 await DisplayAlert("Permission Denied", "Unable to save the receipt without storage permissions.", "OK");
@@ -324,11 +359,11 @@ namespace CashierApp
             await DisplayAlert("Sukces!", $"Rachunek zapisany w : {filePath}", "OK");
 
            
-            string receiptText = GenerateReceiptText();
+            string receiptText = GenerateReceiptText(customerName);
 
             try
             {
-                PrintReceiptAndroid(receiptText);
+                await _receiptPrinterService.PrintReceiptAsync(receiptText);
                 await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
             }
             catch (Exception ex)
@@ -343,6 +378,7 @@ namespace CashierApp
 
 
 
+
         private Color GetBackgroundColorForQuantityType(string quantityType)
         {
             return quantityType switch
@@ -353,10 +389,12 @@ namespace CashierApp
                 _ => Colors.Gray,
             };
         }
-        private string GenerateReceiptText()
+        private string GenerateReceiptText(string customerName)
         {
             var receiptText = new StringBuilder();
+
             receiptText.AppendLine("---- Rachunek ----");
+            receiptText.AppendLine($"Klient: {customerName}");
             receiptText.AppendLine("Produkt\tIlość\tCena");
 
             foreach (var item in ReceiptItems)
@@ -366,20 +404,13 @@ namespace CashierApp
 
             receiptText.AppendLine("-----------------");
             receiptText.AppendLine($"Suma: {totalAmount:C}");
+
             return receiptText.ToString();
         }
+
         private void PrintReceiptAndroid(string receiptText)
         {
-#if ANDROID
-            // Get the PrintManager service from the Android application context
-            var printManager = (Android.Print.PrintManager)Android.App.Application.Context.GetSystemService(Android.Content.Context.PrintService);
 
-            // Create an instance of your custom PrintDocumentAdapter
-            var printAdapter = new ReceiptPrintDocumentAdapter(receiptText);
-
-            // Start the print job
-            printManager.Print("Receipt Print Job", printAdapter, null);
-#endif
         }
 
 
