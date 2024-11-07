@@ -31,8 +31,7 @@ namespace CashierApp
                 if (_receiptItems != value)
                 {
                     _receiptItems = value;
-                    OnPropertyChanged(nameof(ReceiptItems)); // Notify UI of the change
-
+                    OnPropertyChanged(nameof(ReceiptItems)); 
                 }
             }
         }
@@ -50,7 +49,7 @@ namespace CashierApp
                 item.PropertyChanged += OnReceiptItemChanged;
             }
             _receiptSaveService = receiptSaveService;
-            _receiptPrinterService = new ReceiptPrinterService("CITIZEN NAZWA");
+            _receiptPrinterService = new ReceiptPrinterService("CITIZEN CT-S2000");
         }
         protected override async void OnAppearing()
         {
@@ -360,16 +359,16 @@ namespace CashierApp
 
            
             string receiptText = GenerateReceiptText(customerName,filePath);
-            string txtFilePath = await SaveReceiptToTextFileAsync(receiptText);
-            //try
-            //{
-            //    await _receiptPrinterService.PrintReceiptAsync(receiptText);
-            //    await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
-            //}
-            //catch (Exception ex)
-            //{
-            //    await DisplayAlert("Błąd drukowania", $"Nie udało się wydrukować rachunku: {ex.Message}", "OK");
-            //}
+            //string txtFilePath = await SaveReceiptToTextFileAsync(receiptText);
+            try
+            {
+                 PrintReceiptWithCut(customerName, filePath);
+                await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Błąd drukowania", $"Nie udało się wydrukować rachunku: {ex.Message}", "OK");
+            }
 
             ReceiptItems.Clear();
             RefreshTotalAmount();
@@ -393,46 +392,94 @@ namespace CashierApp
                 _ => Colors.Gray,
             };
         }
-        private string GenerateReceiptText(string customerName,string filePath)
+        private async void PrintReceiptWithCut(string customerName, string filePath)
         {
-            
+            try
+            {
+                var receiptText = GenerateReceiptText(customerName, filePath);
+
+
+                Debug.WriteLine($"Sending to printer: {receiptText}");
+
+
+                await _receiptPrinterService.PrintReceiptAsync(receiptText);
+                await _receiptPrinterService.PrintReceiptAsync("\n\n\n");
+                await _receiptPrinterService.PrintReceiptAsync("\x1B\x69");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Błąd drukowania", $"Nie udało się wydrukować rachunku: {ex.Message}", "OK");
+            }
+        }
+
+
+        private string GenerateReceiptText(string customerName, string filePath)
+        {
             var receiptText = new StringBuilder();
             string fileName = Path.GetFileNameWithoutExtension(filePath);
-            receiptText.AppendLine("---- Rachunek ----");
-            receiptText.AppendLine($"Klient: {customerName}");
-            receiptText.AppendLine("Produkt\tIlość\tCena");
 
+            // Header
+            receiptText.AppendLine("==================================");
+            receiptText.AppendLine("            RACHUNEK              ");
+            receiptText.AppendLine("==================================");
+            receiptText.AppendLine($"Data: {DateTime.Now:dd-MM-yyyy HH:mm}");
+            receiptText.AppendLine($"Klient: {customerName}");
+            receiptText.AppendLine("----------------------------------");
+
+            // Column Headers
+            receiptText.AppendLine($"{"Produkt",-20} {"Ilość",6} {"Cena",10}");
+            receiptText.AppendLine("----------------------------------");
+
+            // Items
             foreach (var item in ReceiptItems)
             {
-                receiptText.AppendLine($"{item.Name}\t{item.Quantity}\t{item.TotalPrice:C}");
+                string productName = item.Name.Length > 18 ? item.Name.Substring(0, 18) + "..." : item.Name;
+
+
+                string formattedPrice = FormatCurrencyWithSpace(item.TotalPrice);
+
+                receiptText.AppendLine($"{productName,-20} {item.Quantity,6} {formattedPrice,10}");
             }
 
-            receiptText.AppendLine("-----------------");
-            receiptText.AppendLine($"Suma: {totalAmount:C}");
-            receiptText.AppendLine($"{fileName}");
+            // Footer
+            receiptText.AppendLine("----------------------------------");
+            receiptText.AppendLine($"{"SUMA",-20} {FormatCurrencyWithSpace(totalAmount),16}");
+            receiptText.AppendLine("==================================");
+            receiptText.AppendLine($"Nr Rachunku: {fileName}");
+            receiptText.AppendLine("Dziękujemy za zakupy!");
+            receiptText.AppendLine("==================================");
 
             return receiptText.ToString();
         }
 
-        private async Task<string> SaveReceiptToTextFileAsync(string receiptText) //TODO DELETE after testes
+        private string FormatCurrencyWithSpace(decimal amount)
         {
-            try
-            {
+            return string.Format(new System.Globalization.CultureInfo("pl-PL"), "{0:N}", amount)
+                .Replace('\u00A0', ' '); // Replace non-breaking space with regular space if needed
+        }
+
+
+
+
+        //private async Task<string> SaveReceiptToTextFileAsync(string receiptText) //TODO DELETE after testes
+        //{
+        //    try
+        //    {
              
-                string fileName = $"Rachunek_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-                string filePath = Path.Combine(FileSystem.Current.AppDataDirectory, fileName);
+        //        string fileName = $"Rachunek_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+        //        string filePath = Path.Combine(FileSystem.Current.AppDataDirectory, fileName);
 
                
-                await File.WriteAllTextAsync(filePath, receiptText);
+        //        await File.WriteAllTextAsync(filePath, receiptText);
 
-                return filePath; 
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error", $"Could not save the receipt: {ex.Message}", "OK");
-                return null;
-            }
-        }
+        //        return filePath; 
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await DisplayAlert("Error", $"Could not save the receipt: {ex.Message}", "OK");
+        //        return null;
+        //    }
+        //}
 
 
     }
