@@ -346,7 +346,7 @@ namespace CashierApp
 
             await _receiptSaveService.RequestSaveAsync();
                 var excelHelper = new ExcelHelper();
-            var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems);
+            var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems,customerName);
             MessagingCenter.Send(this, "SaveReceiptItems");
 
             if (filePath == null)

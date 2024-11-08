@@ -12,12 +12,14 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left Side: Receipt and Total -->
+        <ScrollView Grid.Column="0" Padding="10">
         <VerticalStackLayout Grid.Column="0" Padding="10">
             <Label Text="Kasa rzeźnicza" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
             <Label Text="Rachunek:" FontSize="20" TextColor="Black" HorizontalOptions="Start" Padding="0,20,0,0"/>
             <ScrollView>
                 <StackLayout x:Name="ReceiptList" />
             </ScrollView>
+            
             <CollectionView x:Name="ReceiptCollectionView" ItemsSource="{Binding ReceiptItems}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
@@ -79,7 +81,7 @@
                     BackgroundColor="Green"
                     TextColor="White" />
         </VerticalStackLayout>
-
+        </ScrollView>
         <!-- Divider -->
         <BoxView WidthRequest="1" BackgroundColor="Gray" VerticalOptions="Fill" Grid.Column="1" />
 
