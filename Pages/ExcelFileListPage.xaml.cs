@@ -56,10 +56,10 @@ namespace CashierApps
             return selectedFile?.FilePath; 
         }
 
-   
+
         public async Task SaveReceiptItemsToSelectedFileAsync()
         {
-            var selectedFilePath = GetSelectedFilePath(); 
+            var selectedFilePath = GetSelectedFilePath();
 
             if (string.IsNullOrEmpty(selectedFilePath))
             {
@@ -70,55 +70,104 @@ namespace CashierApps
                 await DisplayAlert("WZ", "Brak produktów do zapisania", "OK");
                 return;
             }
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-                using (var package = new ExcelPackage(new FileInfo(selectedFilePath)))
+            using (var package = new ExcelPackage(new FileInfo(selectedFilePath)))
+            {
+                // Ensure there's a "Receipts" tab to store individual receipt items
+                var receiptWorksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Rachunki")
+                                       ?? package.Workbook.Worksheets.Add("Rachunki");
+
+                // Start row for appending receipt items
+                int startRow = receiptWorksheet.Dimension?.Rows + 1 ?? 1;
+
+                // Add header row if the worksheet is empty
+                if (startRow == 1)
                 {
-                    var worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Receipts");
-
- 
-                    int startRow = worksheet.Dimension?.Rows + 1 ?? 1;
-
-   
-                    if (startRow == 1)
-                    {
-                        worksheet.Cells[1, 1].Value = "Produkt";
-                        worksheet.Cells[1, 2].Value = "Ilość";
-                        worksheet.Cells[1, 3].Value = "Cena jednostkowa";
-                        worksheet.Cells[1, 4].Value = "Cena końcowa";
-                        worksheet.Cells[1, 1, 1, 4].Style.Font.Bold = true;
-                        startRow = 2; 
-                    }
-
-                  
-
-
-       
-                    foreach (var item in ReceiptItems)
-                    {
-                        worksheet.Cells[startRow, 1].Value = item.Name;
-                        worksheet.Cells[startRow, 2].Value = item.Quantity;
-                        worksheet.Cells[startRow, 3].Value = item.UnitPrice;
-                        worksheet.Cells[startRow, 4].Value = item.TotalPrice;
-                        startRow++;
-                    }
-
-             
-                    worksheet.Cells[startRow, 3].Value = "Suma";
-                    worksheet.Cells[startRow, 4].Formula = $"SUM(D2:D{startRow - 1})";
-                    worksheet.Cells[startRow, 3, startRow, 4].Style.Font.Bold = true;
-
-                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-
-               
-                    await package.SaveAsync();
+                    receiptWorksheet.Cells[1, 1].Value = "Produkt";
+                    receiptWorksheet.Cells[1, 2].Value = "Ilość";
+                    receiptWorksheet.Cells[1, 3].Value = "Cena jednostkowa";
+                    receiptWorksheet.Cells[1, 4].Value = "Cena końcowa";
+                    receiptWorksheet.Cells[1, 1, 1, 4].Style.Font.Bold = true;
+                    startRow = 2;
                 }
 
-                await DisplayAlert("WZ", $"Rachunek dodano do WZ! {selectedFilePath}", "OK");
+                // Add current receipt items to "Receipts" tab
+                foreach (var item in ReceiptItems)
+                {
+                    receiptWorksheet.Cells[startRow, 1].Value = item.Name;
+                    receiptWorksheet.Cells[startRow, 2].Value = item.Quantity;
+                    receiptWorksheet.Cells[startRow, 3].Value = item.UnitPrice;
+                    receiptWorksheet.Cells[startRow, 4].Value = item.TotalPrice;
+                    startRow++;
+                }
 
+                // Add a "Total" row
+                receiptWorksheet.Cells[startRow, 3].Value = "Suma";
+                receiptWorksheet.Cells[startRow, 4].Formula = $"SUM(D2:D{startRow - 1})";
+                receiptWorksheet.Cells[startRow, 3, startRow, 4].Style.Font.Bold = true;
+
+                // Adjust column widths
+                receiptWorksheet.Cells[receiptWorksheet.Dimension.Address].AutoFitColumns();
+
+                // Ensure there's a "Total Quantity" tab
+                var totalQuantityWorksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Suma wydań")
+                                             ?? package.Workbook.Worksheets.Add("Suma wydań");
+
+                var productTotals = new Dictionary<string, double>();
+
+               
+                int totalRow = 2;
+                if (totalQuantityWorksheet.Dimension != null)
+                {
+                    for (int row = 2; row <= totalQuantityWorksheet.Dimension.Rows; row++)
+                    {
+                        string productName = totalQuantityWorksheet.Cells[row, 1].Text;
+                        double quantity = totalQuantityWorksheet.Cells[row, 2].GetValue<double>();
+                        productTotals[productName] = quantity;
+                    }
+                }
+
+                foreach (var item in ReceiptItems)
+                {
+                    if (productTotals.ContainsKey(item.Name))
+                    {
+                        productTotals[item.Name] += (double)item.Quantity;  
+                    }
+                    else
+                    {
+                        productTotals[item.Name] = (double)item.Quantity; 
+                    }
+                }
+
+                // Clear the "Total Quantity" tab and add header if necessary
+                totalQuantityWorksheet.Cells.Clear();
+                totalQuantityWorksheet.Cells[1, 1].Value = "Produkt";
+                totalQuantityWorksheet.Cells[1, 2].Value = "Łączna Ilość";
+                totalQuantityWorksheet.Cells[1, 1, 1, 2].Style.Font.Bold = true;
+
+                // Populate the "Total Quantity" tab with updated totals
+                totalRow = 2;
+                foreach (var kvp in productTotals)
+                {
+                    totalQuantityWorksheet.Cells[totalRow, 1].Value = kvp.Key;
+                    totalQuantityWorksheet.Cells[totalRow, 2].Value = kvp.Value;
+                    totalRow++;
+                }
+
+                // Adjust column widths in the "Total Quantity" tab
+                totalQuantityWorksheet.Cells[totalQuantityWorksheet.Dimension.Address].AutoFitColumns();
+
+                // Save the package
+                await package.SaveAsync();
+            }
+
+            await DisplayAlert("WZ", $"Rachunek dodano do WZ! {selectedFilePath}", "OK");
         }
 
-        
+
+
         private async void OnSaveButtonClicked(object sender, EventArgs e)
         {
             await SaveReceiptItemsToSelectedFileAsync();

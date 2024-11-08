@@ -46,7 +46,7 @@ namespace CashierApp
         private void AddProductsTab()
         {
             var productPage = new CashierApp.ProductsPage(ReceiptItems, _receiptSaveService);
-            Children.Add(new NavigationPage(productPage) { Title = "Products" });
+            Children.Add(new NavigationPage(productPage) { Title = "Produkty" });
         }
 
         private void AddAdminEditTab(Product product)

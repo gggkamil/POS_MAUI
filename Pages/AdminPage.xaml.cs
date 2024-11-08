@@ -9,12 +9,15 @@ namespace CashierApp
 {
     public partial class AdminPage : ContentPage
     {
+        private const string PrinterNameKey = "PrinterName";
         private List<Product> products;
         private TabbedPage parentTabbedPage;
         public AdminPage(TabbedPage parent)
         {
+
             InitializeComponent();
             parentTabbedPage = parent;
+            PrinterNameEntry.Text = Preferences.Get(PrinterNameKey, "Citizen CT-S2000");
             LoadProducts();
         }
 
@@ -23,7 +26,12 @@ namespace CashierApp
             products = await ProductStorage.LoadProductsAsync();
             ProductCollectionView.ItemsSource = products; // Bind products to the CollectionView
         }
-
+        private void OnSavePrinterNameClicked(object sender, EventArgs e)
+        {
+            // Save the printer name to preferences
+            Preferences.Set(PrinterNameKey, PrinterNameEntry.Text);
+            DisplayAlert("Sukces", "Nazwa drukarki została zapisana.", "OK");
+        }
         private async void OnAddProductClicked(object sender, EventArgs e)
         {
             // Read input values
@@ -155,7 +163,7 @@ namespace CashierApp
             ProductCategoryEntry.Text = string.Empty;
             ProductImagePathEntry.Text = string.Empty;
             QuantityTypePicker.SelectedItem = null;
-            ProductPriceEntry.Text = string.Empty; // Clear the selected item in the Picker
+            ProductPriceEntry.Text = string.Empty; 
         }
     }
 }

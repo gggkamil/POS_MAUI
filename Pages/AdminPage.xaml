@@ -3,8 +3,9 @@
              x:Class="CashierApp.AdminPage"
              BackgroundColor="#F0F0F0"
              Padding="10">
+    <ScrollView Grid.Column="0" Padding="10">
     <VerticalStackLayout Spacing="15">
-        <Label Text="Add Product" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
+        <Label Text="Dodaj produkt" FontSize="24" TextColor="Black" HorizontalOptions="Center" />
 
         <Entry x:Name="ProductNameEntry" Placeholder="Nazwa produktu" BackgroundColor="White" TextColor="Black"/>
         <Entry x:Name="ProductCategoryEntry" Placeholder="Kategoria" BackgroundColor="White" TextColor="Black" />
@@ -54,6 +55,17 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+        <Label Text="Nazwa drukarki" FontSize="16" TextColor="Black" HorizontalOptions="Start" />
+        <Entry x:Name="PrinterNameEntry" 
+               Text="Citizen CT-S2000" 
+               Placeholder="Wprowadź nazwę drukarki" 
+               FontSize="16"
+               TextColor="Black" 
+               BackgroundColor="White"
+               HorizontalOptions="FillAndExpand" />
+
+        <Button Text="Zapisz nazwę drukarki" Clicked="OnSavePrinterNameClicked" />
 
     </VerticalStackLayout>
+        </ScrollView>
 </ContentPage>

@@ -49,7 +49,8 @@ namespace CashierApp
                 item.PropertyChanged += OnReceiptItemChanged;
             }
             _receiptSaveService = receiptSaveService;
-            _receiptPrinterService = new ReceiptPrinterService("CITIZEN CT-S2000");
+            string printerName = Preferences.Get("PrinterName", "Citizen CT-S2000");
+            _receiptPrinterService = new ReceiptPrinterService(printerName);
         }
         protected override async void OnAppearing()
         {
