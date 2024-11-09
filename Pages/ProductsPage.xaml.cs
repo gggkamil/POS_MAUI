@@ -328,17 +328,13 @@ namespace CashierApp
 
         private async void OnSaveAndClearReceiptClicked(object sender, EventArgs e)
         {
-            
             string customerName = await PromptForNameAsync();
-
             if (customerName == null)
             {
-             
                 await DisplayAlert("Anulowano", "Brak imienia, nie można kontynuować.", "OK");
                 return;
             }
 
-           
             if (!await RequestStoragePermissionAsync())
             {
                 await DisplayAlert("Permission Denied", "Unable to save the receipt without storage permissions.", "OK");
@@ -346,9 +342,11 @@ namespace CashierApp
             }
 
             await _receiptSaveService.RequestSaveAsync();
-                var excelHelper = new ExcelHelper();
-            var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems,customerName);
-            MessagingCenter.Send(this, "SaveReceiptItems");
+            var excelHelper = new ExcelHelper();
+            var filePath = await excelHelper.SaveReceiptToExcelAsync(ReceiptItems, customerName);
+
+            // Include customerName in the message being sent
+            MessagingCenter.Send(this, "SaveReceiptItems", customerName);
 
             if (filePath == null)
             {
@@ -357,13 +355,11 @@ namespace CashierApp
             }
 
             await DisplayAlert("Sukces!", $"Rachunek zapisany w : {filePath}", "OK");
+            string receiptText = GenerateReceiptText(customerName, filePath);
 
-           
-            string receiptText = GenerateReceiptText(customerName,filePath);
-            //string txtFilePath = await SaveReceiptToTextFileAsync(receiptText);
             try
             {
-                 PrintReceiptWithCut(customerName, filePath);
+                PrintReceiptWithCut(customerName, filePath);
                 await DisplayAlert("Sukces!", "Rachunek został wydrukowany.", "OK");
             }
             catch (Exception ex)
@@ -378,6 +374,7 @@ namespace CashierApp
                 itemClickCounts[key] = 0;
             }
         }
+
 
 
 

@@ -13,22 +13,29 @@ namespace CashierApps
     public partial class ExcelFileListPage : ContentPage
     {
         public ObservableCollection<ExcelFile> ExcelFiles { get; set; } = new ObservableCollection<ExcelFile>();
-
-    
         public ObservableCollection<ReceiptItem> ReceiptItems { get; private set; }
+
+        // New property for storing the customer name
+        public string CustomerName { get; set; } = "Default Customer";
+
         private readonly IReceiptSaveService _receiptSaveService;
+
         public ExcelFileListPage(ObservableCollection<ReceiptItem> receiptItems, IReceiptSaveService receiptSaveService)
         {
             InitializeComponent();
             BindingContext = this;
-            ReceiptItems = receiptItems; 
-            LoadExcelFiles(); 
+            ReceiptItems = receiptItems;
+            LoadExcelFiles();
             _receiptSaveService = receiptSaveService;
+
+            // Update to use the parameterless wrapper
             _receiptSaveService.OnSaveRequested += SaveReceiptItemsToSelectedFileAsync;
-            MessagingCenter.Subscribe<ProductsPage>(this, "SaveReceiptItems", async (sender) =>
+
+            MessagingCenter.Subscribe<ProductsPage, string>(this, "SaveReceiptItems", async (sender, customerName) =>
             {
-                await SaveReceiptItemsToSelectedFileAsync();
+                await SaveReceiptItemsToSelectedFileAsync(customerName);
             });
+
         }
 
         private void LoadExcelFiles()
@@ -43,7 +50,7 @@ namespace CashierApps
                     {
                         FileName = Path.GetFileName(file),
                         FilePath = file,
-                        IsSelected = false 
+                        IsSelected = false
                     });
                 }
             }
@@ -51,16 +58,20 @@ namespace CashierApps
 
         public string GetSelectedFilePath()
         {
-   
             var selectedFile = ExcelFiles.FirstOrDefault(f => f.IsSelected);
-            return selectedFile?.FilePath; 
+            return selectedFile?.FilePath;
         }
 
-
+        // Parameterless wrapper to satisfy the delegate
         public async Task SaveReceiptItemsToSelectedFileAsync()
         {
-            var selectedFilePath = GetSelectedFilePath();
+            await SaveReceiptItemsToSelectedFileAsync(CustomerName);
+        }
 
+        // Main method to save receipt items with a specific customer name
+        public async Task SaveReceiptItemsToSelectedFileAsync(string customerName)
+        {
+            var selectedFilePath = GetSelectedFilePath();
             if (string.IsNullOrEmpty(selectedFilePath))
             {
                 return;
@@ -75,97 +86,31 @@ namespace CashierApps
 
             using (var package = new ExcelPackage(new FileInfo(selectedFilePath)))
             {
-                // Ensure there's a "Receipts" tab to store individual receipt items
-                var receiptWorksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Rachunki")
-                                       ?? package.Workbook.Worksheets.Add("Rachunki");
+                var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Customer Receipts")
+                                ?? package.Workbook.Worksheets.Add("Customer Receipts");
 
-                // Start row for appending receipt items
-                int startRow = receiptWorksheet.Dimension?.Rows + 1 ?? 1;
+                int startRow = worksheet.Dimension?.Rows + 1 ?? 1;
 
-                // Add header row if the worksheet is empty
                 if (startRow == 1)
                 {
-                    receiptWorksheet.Cells[1, 1].Value = "Produkt";
-                    receiptWorksheet.Cells[1, 2].Value = "Ilość";
-                    receiptWorksheet.Cells[1, 3].Value = "Cena jednostkowa";
-                    receiptWorksheet.Cells[1, 4].Value = "Cena końcowa";
-                    receiptWorksheet.Cells[1, 1, 1, 4].Style.Font.Bold = true;
+                    worksheet.Cells[1, 1].Value = "Imię i nazwisko";
+                    worksheet.Cells[1, 2].Value = "Suma";
+                    worksheet.Cells[1, 1, 1, 2].Style.Font.Bold = true;
                     startRow = 2;
                 }
 
-                // Add current receipt items to "Receipts" tab
-                foreach (var item in ReceiptItems)
-                {
-                    receiptWorksheet.Cells[startRow, 1].Value = item.Name;
-                    receiptWorksheet.Cells[startRow, 2].Value = item.Quantity;
-                    receiptWorksheet.Cells[startRow, 3].Value = item.UnitPrice;
-                    receiptWorksheet.Cells[startRow, 4].Value = item.TotalPrice;
-                    startRow++;
-                }
+                decimal totalSum = ReceiptItems.Sum(item => item.TotalPrice);
 
-                // Add a "Total" row
-                receiptWorksheet.Cells[startRow, 3].Value = "Suma";
-                receiptWorksheet.Cells[startRow, 4].Formula = $"SUM(D2:D{startRow - 1})";
-                receiptWorksheet.Cells[startRow, 3, startRow, 4].Style.Font.Bold = true;
+                worksheet.Cells[startRow, 1].Value = customerName;
+                worksheet.Cells[startRow, 2].Value = totalSum.ToString("C");
 
-                // Adjust column widths
-                receiptWorksheet.Cells[receiptWorksheet.Dimension.Address].AutoFitColumns();
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
-                // Ensure there's a "Total Quantity" tab
-                var totalQuantityWorksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Suma wydań")
-                                             ?? package.Workbook.Worksheets.Add("Suma wydań");
-
-                var productTotals = new Dictionary<string, double>();
-
-               
-                int totalRow = 2;
-                if (totalQuantityWorksheet.Dimension != null)
-                {
-                    for (int row = 2; row <= totalQuantityWorksheet.Dimension.Rows; row++)
-                    {
-                        string productName = totalQuantityWorksheet.Cells[row, 1].Text;
-                        double quantity = totalQuantityWorksheet.Cells[row, 2].GetValue<double>();
-                        productTotals[productName] = quantity;
-                    }
-                }
-
-                foreach (var item in ReceiptItems)
-                {
-                    if (productTotals.ContainsKey(item.Name))
-                    {
-                        productTotals[item.Name] += (double)item.Quantity;  
-                    }
-                    else
-                    {
-                        productTotals[item.Name] = (double)item.Quantity; 
-                    }
-                }
-
-                // Clear the "Total Quantity" tab and add header if necessary
-                totalQuantityWorksheet.Cells.Clear();
-                totalQuantityWorksheet.Cells[1, 1].Value = "Produkt";
-                totalQuantityWorksheet.Cells[1, 2].Value = "Łączna Ilość";
-                totalQuantityWorksheet.Cells[1, 1, 1, 2].Style.Font.Bold = true;
-
-                // Populate the "Total Quantity" tab with updated totals
-                totalRow = 2;
-                foreach (var kvp in productTotals)
-                {
-                    totalQuantityWorksheet.Cells[totalRow, 1].Value = kvp.Key;
-                    totalQuantityWorksheet.Cells[totalRow, 2].Value = kvp.Value;
-                    totalRow++;
-                }
-
-                // Adjust column widths in the "Total Quantity" tab
-                totalQuantityWorksheet.Cells[totalQuantityWorksheet.Dimension.Address].AutoFitColumns();
-
-                // Save the package
                 await package.SaveAsync();
             }
 
             await DisplayAlert("WZ", $"Rachunek dodano do WZ! {selectedFilePath}", "OK");
         }
-
 
 
         private async void OnSaveButtonClicked(object sender, EventArgs e)
@@ -178,16 +123,16 @@ namespace CashierApps
             var selectedFile = (sender as CheckBox)?.BindingContext as ExcelFile;
 
             if (selectedFile == null || !selectedFile.IsSelected) return;
-       
-      
-                foreach (var file in ExcelFiles)
+
+            foreach (var file in ExcelFiles)
+            {
+                if (file != selectedFile && file.IsSelected)
                 {
-                    if (file != selectedFile && file.IsSelected)
-                    {
-                        file.IsSelected = false;
-                    }
+                    file.IsSelected = false;
                 }
+            }
         }
+
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
