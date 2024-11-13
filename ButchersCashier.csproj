@@ -80,6 +80,9 @@
 	  <Compile Update="Pages\LoginPage.xaml.cs">
 	    <DependentUpon>LoginPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Pages\OrdersListPage.xaml.cs">
+	    <DependentUpon>OrdersListPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Pages\OrdersPage.xaml.cs">
 	    <DependentUpon>OrdersPage.xaml</DependentUpon>
 	  </Compile>
@@ -99,6 +102,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\LoginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\OrdersListPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\OrdersPage.xaml">

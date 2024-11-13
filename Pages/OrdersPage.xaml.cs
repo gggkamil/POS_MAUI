@@ -3,10 +3,7 @@ using Microsoft.Maui.Controls;
 using OfficeOpenXml;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using ButchersCashier;
-using ButchersCashier.Models;
 
 namespace CashierApp
 {
@@ -17,7 +14,6 @@ namespace CashierApp
         private string filePath;
 
         public ObservableCollection<OrderRow> Orders { get; set; } = new();
-        private List<Product> Products { get; set; } = new();
 
         public OrdersPage()
         {
@@ -25,17 +21,10 @@ namespace CashierApp
             filePath = Path.Combine(folderPath, fileName);
             BindingContext = this;
 
-            LoadDataAsync();
-        }
-
-        // Load data from the JSON product file and Excel orders file
-        private async Task LoadDataAsync()
-        {
-            Products = await ProductStorage.LoadProductsAsync(); // Load products from JSON
+            EnsureFileExists();
             LoadOrdersFromExcel();
         }
 
-        // Load orders from the Excel file
         private async void LoadOrdersFromExcel()
         {
             try
@@ -44,64 +33,52 @@ namespace CashierApp
                 using (var package = new ExcelPackage(new FileInfo(filePath)))
                 {
                     var worksheet = package.Workbook.Worksheets[0];
+
+                    // Check if worksheet has a valid Dimension
                     if (worksheet.Dimension == null)
                     {
-                        await DisplayAlert("Info", "The Excel sheet is empty or has no data.", "OK");
+                        await DisplayAlert("Info", "No data found in the worksheet.", "OK");
                         return;
                     }
 
                     int rowCount = worksheet.Dimension.Rows;
+                    int colCount = worksheet.Dimension.Columns;
 
                     for (int row = 2; row <= rowCount; row++) // Starting from row 2 to skip headers
                     {
-                        // Read the Order ID from the "LP." column (assuming it's column 1)
-                        string orderIdText = worksheet.Cells[row, 1].Text;
-                        if (string.IsNullOrWhiteSpace(orderIdText) || !int.TryParse(orderIdText, out int orderId))
-                        {
-                            continue; // Skip rows without a valid Order ID
-                        }
+                        // Read values in the row, including the CustomerName
+                        var customerName = worksheet.Cells[row, 2].Text?.Trim(); // Assuming column 2 is "CustomerName"
 
-                        // Read the Customer Name from the "Imię i nazwisko" column (assuming it's column 2)
-                        string customerName = worksheet.Cells[row, 2].Text;
-                        if (string.IsNullOrWhiteSpace(customerName))
-                        {
-                            continue; // Skip rows without a Customer Name
-                        }
+                        // Skip row if CustomerName is empty
+                        if (string.IsNullOrEmpty(customerName))
+                            continue;
 
+                        var orderId = int.TryParse(worksheet.Cells[row, 1].Text, out var id) ? id : 0;
                         var productQuantities = new ObservableCollection<ProductQuantity>();
-                        bool hasNonZeroQuantity = false;
 
-                        // Assuming product quantities start from column 3 onward in the Excel sheet
-                        for (int col = 3; col <= worksheet.Dimension.Columns; col++)
+                        // Loop through the columns for product quantities starting from column 3 (assuming column 1 is ID and column 2 is CustomerName)
+                        for (int col = 3; col <= colCount; col++)
                         {
-                            string productQuantityText = worksheet.Cells[row, col].Text;
-                            decimal quantity = decimal.TryParse(productQuantityText, out decimal q) ? q : 0;
-
-                            if (col - 3 < Products.Count) // Ensure we’re within Products list bounds
+                            string productName = worksheet.Cells[1, col].Text; // Column headers in row 1 are product names
+                            if (decimal.TryParse(worksheet.Cells[row, col].Text, out var quantity))
                             {
-                                var product = Products[col - 3];
-                                productQuantities.Add(new ProductQuantity { ProductName = product.Name, Quantity = quantity });
-
-                                if (quantity > 0)
+                                productQuantities.Add(new ProductQuantity
                                 {
-                                    hasNonZeroQuantity = true;
-                                }
+                                    ProductName = productName,
+                                    Quantity = quantity
+                                });
                             }
                         }
 
-                        // Add the order if it has any non-zero product quantities
-                        if (hasNonZeroQuantity)
+                        Orders.Add(new OrderRow
                         {
-                            Orders.Add(new OrderRow
-                            {
-                                OrderId = orderId,
-                                CustomerName = customerName,
-                                ProductQuantities = productQuantities
-                            });
-                        }
+                            OrderId = orderId,
+                            CustomerName = customerName,
+                            ProductQuantities = productQuantities
+                        });
                     }
 
-                    DisplayOrderCards(); // Method to display the orders in card format
+                    DisplayOrders();
                 }
             }
             catch (Exception ex)
@@ -111,60 +88,85 @@ namespace CashierApp
         }
 
 
-
-        // Display each order as a card in the UI
-        private void DisplayOrderCards()
+        private void EnsureFileExists()
         {
-            OrdersContainer.Children.Clear();
+            // Create directory if it doesn’t exist
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
 
+            // Create file with initial data if it doesn’t exist
+            if (!File.Exists(filePath))
+            {
+                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Orders");
+                    worksheet.Cells[1, 1].Value = "LP."; // Order ID
+                    worksheet.Cells[1, 2].Value = "Imię i nazwisko"; // Customer name
+
+                    // Add more product columns as needed
+                    worksheet.Cells[1, 3].Value = "Product 1";
+                    worksheet.Cells[1, 4].Value = "Product 2";
+                    worksheet.Cells[1, 5].Value = "Product 3";
+
+                    package.Save();
+                }
+            }
+        }
+
+        private void DisplayOrders()
+        {
+            OrdersContainer.Children.Clear();  // Clear any previous content in the container
+
+            // Loop through each order and display it
             foreach (var order in Orders)
             {
-                var card = new Frame
+                var frame = new Frame
                 {
                     BorderColor = Colors.Gray,
                     Padding = 10,
-                    Margin = 5,
-                    CornerRadius = 5,
-                    BackgroundColor = Colors.LightGray
+                    CornerRadius = 8,
+                    Margin = new Thickness(0, 5)
                 };
 
                 var stackLayout = new StackLayout { Spacing = 5 };
 
-                // Customer Name
+                // Add basic order information (Order ID and Customer Name)
                 stackLayout.Children.Add(new Label
                 {
-                    Text = $"Customer: {order.CustomerName}",
+                    Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
                     FontAttributes = FontAttributes.Bold,
-                    FontSize = 16
+                    FontSize = 18
                 });
 
-                // Product Quantities
-                foreach (var productQuantity in order.ProductQuantities)
-                {
-                    stackLayout.Children.Add(new Label
-                    {
-                        Text = $"{productQuantity.ProductName}: {productQuantity.Quantity}",
-                        FontSize = 14
-                    });
-                }
+                // Add a tap gesture recognizer for navigation
+                var tapGesture = new TapGestureRecognizer();
+                tapGesture.Tapped += async (sender, e) => await OnOrderSelected(order); // Navigate to Order Details page on tap
+                frame.GestureRecognizers.Add(tapGesture);
 
-                card.Content = stackLayout;
-                OrdersContainer.Children.Add(card);
+                frame.Content = stackLayout; // Set the content of the frame
+                OrdersContainer.Children.Add(frame); // Add the frame to the container
             }
         }
 
-        // Class to hold product name and quantity for each order
-        public class ProductQuantity
-        {
-            public string ProductName { get; set; }
-            public decimal Quantity { get; set; }
-        }
 
-        public class OrderRow
+        private async Task OnOrderSelected(OrderRow selectedOrder)
         {
-            public int OrderId { get; set; } // Unique identifier for the order (index)
-            public string CustomerName { get; set; }
-            public ObservableCollection<ProductQuantity> ProductQuantities { get; set; }
+            await Navigation.PushAsync(new OrdersListPage(selectedOrder));
         }
+    }
+
+    public class ProductQuantity
+    {
+        public string ProductName { get; set; }
+        public decimal Quantity { get; set; }
+    }
+
+    public class OrderRow
+    {
+        public int OrderId { get; set; }
+        public string CustomerName { get; set; }
+        public ObservableCollection<ProductQuantity> ProductQuantities { get; set; }
     }
 }
