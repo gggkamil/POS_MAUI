@@ -28,7 +28,7 @@ namespace CashierApp
             _authService = new LocalAuthService();
             _authService.SetCurrentUser(username);
             _receiptSaveService = receiptSaveService; // Initialize the receipt save service
-
+            AddOrdersTab();
             AddProductsTab();
             AddExcelListTab();
             CheckUserAccess();
@@ -47,6 +47,11 @@ namespace CashierApp
         {
             var productPage = new CashierApp.ProductsPage(ReceiptItems, _receiptSaveService);
             Children.Add(new NavigationPage(productPage) { Title = "Produkty" });
+        }
+        private void AddOrdersTab()
+        {
+            var productPage = new CashierApp.OrdersPage();
+            Children.Add(new NavigationPage(productPage) { Title = "Zamówienia" });
         }
 
         private void AddAdminEditTab(Product product)
