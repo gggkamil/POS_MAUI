@@ -42,7 +42,12 @@
                         <!-- Product entries will be added here dynamically -->
                     </Grid>
                 </StackLayout>
-
+   <Button Text="Save Changes"
+                        BackgroundColor="DodgerBlue"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        Margin="0,15,0,0"
+                        Clicked="OnSaveButtonClicked"/>
             </StackLayout>
         </ScrollView>
     </ContentPage.Content>
