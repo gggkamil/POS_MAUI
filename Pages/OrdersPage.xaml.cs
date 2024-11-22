@@ -60,15 +60,18 @@ namespace CashierApp
                         for (int col = 3; col <= colCount; col++)
                         {
                             string productName = worksheet.Cells[1, col].Text; // Column headers in row 1 are product names
-                            if (decimal.TryParse(worksheet.Cells[row, col].Text, out var quantity))
+
+                            // Try to parse the quantity, defaulting to 0 if it's empty or invalid
+                            decimal quantity = decimal.TryParse(worksheet.Cells[row, col].Text, out var parsedQuantity) ? parsedQuantity : 0;
+
+                            // Add all products to the list, even if the quantity is 0
+                            productQuantities.Add(new ProductQuantity
                             {
-                                productQuantities.Add(new ProductQuantity
-                                {
-                                    ProductName = productName,
-                                    Quantity = quantity
-                                });
-                            }
+                                ProductName = productName,
+                                Quantity = quantity
+                            });
                         }
+
 
                         Orders.Add(new OrderRow
                         {
@@ -161,6 +164,7 @@ namespace CashierApp
     {
         public string ProductName { get; set; }
         public decimal Quantity { get; set; }
+        public string Superscript { get; set; }
     }
 
     public class OrderRow

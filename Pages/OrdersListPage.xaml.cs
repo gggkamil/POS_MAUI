@@ -9,7 +9,7 @@ namespace CashierApp
     public partial class OrdersListPage : ContentPage
     {
         private readonly OrderRow _selectedOrder;
-        private readonly string _filePath = @"C:\Kasa\Zamówienia\wydawka_uaktualniona_tylko.xlsx"; // Update file path as needed
+        private readonly string _filePath = @"C:\Kasa\Zamówienia\wydawka_uaktualniona_tylko.xlsx";
 
         public OrdersListPage(OrderRow selectedOrder)
         {
@@ -20,9 +20,8 @@ namespace CashierApp
 
         private void DisplaySelectedOrder(OrderRow order)
         {
-            OrdersStack.Children.Clear(); // Clear previous content
+            OrdersStack.Children.Clear();
 
-            // Create a frame for the selected order
             var frame = new Frame
             {
                 BorderColor = Colors.Gray,
@@ -33,7 +32,6 @@ namespace CashierApp
 
             var stackLayout = new StackLayout { Spacing = 10 };
 
-            // Display Customer Name and Order ID
             stackLayout.Children.Add(new Label
             {
                 Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
@@ -41,78 +39,79 @@ namespace CashierApp
                 FontSize = 18
             });
 
-            // Title for Products Section
-            stackLayout.Children.Add(new Label
-            {
-                Text = "Products and Quantities",
-                FontAttributes = FontAttributes.Bold,
-                FontSize = 16,
-                Margin = new Thickness(0, 10, 0, 5)
-            });
-
-            // Product Grid: Display products and their quantities
             var productGrid = new Grid
             {
                 ColumnDefinitions =
                 {
-                    new ColumnDefinition { Width = GridLength.Star }, // Product Name Column
-                    new ColumnDefinition { Width = GridLength.Auto }   // Editable Quantity Column
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto },
+                    new ColumnDefinition { Width = GridLength.Auto } // New column for superscript
                 },
                 RowSpacing = 5,
-                ColumnSpacing = 15 // Increased spacing between columns
+                ColumnSpacing = 15
             };
 
-            // Add Header Row for Product Name and Quantity
+            // Add headers
             productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
             var productNameHeader = new Label
             {
                 Text = "Product Name",
                 FontAttributes = FontAttributes.Bold,
-                HorizontalOptions = LayoutOptions.Start,
-                Margin = new Thickness(0, 0, 10, 0)
+                HorizontalOptions = LayoutOptions.Start
             };
             productGrid.Children.Add(productNameHeader);
-            Grid.SetColumn(productNameHeader, 0);
             Grid.SetRow(productNameHeader, 0);
+            Grid.SetColumn(productNameHeader, 0);
 
             var quantityHeader = new Label
             {
                 Text = "Quantity",
                 FontAttributes = FontAttributes.Bold,
-                HorizontalOptions = LayoutOptions.End
+                HorizontalOptions = LayoutOptions.Center
             };
             productGrid.Children.Add(quantityHeader);
-            Grid.SetColumn(quantityHeader, 1);
             Grid.SetRow(quantityHeader, 0);
+            Grid.SetColumn(quantityHeader, 1);
+
+            var superscriptHeader = new Label
+            {
+                Text = "Superscript",
+                FontAttributes = FontAttributes.Bold,
+                HorizontalOptions = LayoutOptions.Center
+            };
+            productGrid.Children.Add(superscriptHeader);
+            Grid.SetRow(superscriptHeader, 0);
+            Grid.SetColumn(superscriptHeader, 2);
 
             for (int i = 0; i < order.ProductQuantities.Count; i++)
             {
                 var productQuantity = order.ProductQuantities[i];
-                int rowIndex = i + 1; 
+                int rowIndex = i + 1;
 
                 productGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
+                // Product Name
                 var productLabel = new Label
                 {
                     Text = productQuantity.ProductName,
                     VerticalOptions = LayoutOptions.Center,
-                    HorizontalOptions = LayoutOptions.Start,
-                    Margin = new Thickness(0, 0, 10, 0)
+                    HorizontalOptions = LayoutOptions.Start
                 };
                 productGrid.Children.Add(productLabel);
-                Grid.SetColumn(productLabel, 0);
                 Grid.SetRow(productLabel, rowIndex);
+                Grid.SetColumn(productLabel, 0);
 
-                // Editable Quantity Entry
+                // Quantity Entry
                 var quantityEntry = new Entry
                 {
                     Text = productQuantity.Quantity.ToString(),
                     Keyboard = Keyboard.Numeric,
-                    HorizontalOptions = LayoutOptions.End,
-                    WidthRequest = 80
+                    HorizontalOptions = LayoutOptions.Center,
+                    WidthRequest = 80,
+                    TextColor = productQuantity.Quantity == 0 ? Colors.Red : Colors.White
                 };
 
-                // Update quantity when the entry is modified
                 quantityEntry.TextChanged += (sender, e) =>
                 {
                     if (decimal.TryParse(e.NewTextValue, out decimal newQuantity))
@@ -120,16 +119,28 @@ namespace CashierApp
                         productQuantity.Quantity = newQuantity;
                     }
                 };
-
                 productGrid.Children.Add(quantityEntry);
-                Grid.SetColumn(quantityEntry, 1);
                 Grid.SetRow(quantityEntry, rowIndex);
+                Grid.SetColumn(quantityEntry, 1);
+
+                // Superscript Entry
+                var superscriptEntry = new Entry
+                {
+                    Placeholder = "Superscript",
+                    HorizontalOptions = LayoutOptions.Center,
+                    WidthRequest = 80
+                };
+                superscriptEntry.TextChanged += (sender, e) =>
+                {
+                    productQuantity.Superscript = e.NewTextValue;
+                };
+                productGrid.Children.Add(superscriptEntry);
+                Grid.SetRow(superscriptEntry, rowIndex);
+                Grid.SetColumn(superscriptEntry, 2);
             }
 
-            // Add the product grid to the stack layout
             stackLayout.Children.Add(productGrid);
 
-            // Add the "Save" button
             var saveButton = new Button
             {
                 Text = "Save Changes",
@@ -140,12 +151,8 @@ namespace CashierApp
             };
             saveButton.Clicked += OnSaveButtonClicked;
 
-            // Add the Save button to the stack layout
             stackLayout.Children.Add(saveButton);
-
             frame.Content = stackLayout;
-
-            // Add the frame to the OrdersStack
             OrdersStack.Children.Add(frame);
         }
 
@@ -170,13 +177,14 @@ namespace CashierApp
                 return;
             }
 
-            // Open and update the Excel file using EPPlus
+            // Ensure EPPlus is licensed for non-commercial use
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             using (var package = new ExcelPackage(new FileInfo(_filePath)))
             {
                 var worksheet = package.Workbook.Worksheets[0];
 
-                // Locate the row matching the order ID
+                // Find the row corresponding to the order
                 int orderRowIndex = -1;
                 for (int row = 2; row <= worksheet.Dimension.Rows; row++)
                 {
@@ -193,23 +201,59 @@ namespace CashierApp
                     return;
                 }
 
-                // Update product quantities in the Excel file
+                // Update product quantities with superscripts
                 foreach (var productQuantity in order.ProductQuantities)
                 {
                     for (int col = 3; col <= worksheet.Dimension.Columns; col++)
                     {
                         var header = worksheet.Cells[1, col].Text;
+
                         if (header == productQuantity.ProductName)
                         {
-                            worksheet.Cells[orderRowIndex, col].Value = productQuantity.Quantity;
+                            string quantityText = productQuantity.Quantity.ToString();
+
+                            // Append the superscript if it exists
+                            if (!string.IsNullOrEmpty(productQuantity.Superscript))
+                            {
+                                quantityText += ConvertToSuperscript(productQuantity.Superscript);
+                            }
+
+                            worksheet.Cells[orderRowIndex, col].Value = quantityText;
                             break;
                         }
                     }
                 }
 
-                // Save changes to the Excel file
+                // Save the Excel file
                 package.Save();
             }
         }
+        private string ConvertToSuperscript(string text)
+        {
+            var superscriptMap = new Dictionary<char, char>
+            {
+                { '0', '⁰' }, { '1', '¹' }, { '2', '²' }, { '3', '³' },
+                { '4', '⁴' }, { '5', '⁵' }, { '6', '⁶' }, { '7', '⁷' },
+                { '8', '⁸' }, { '9', '⁹' }, { 'a', 'ᵃ' }, { 'b', 'ᵇ' },
+                { 'c', 'ᶜ' }, { 'd', 'ᵈ' }, { 'e', 'ᵉ' }, { 'f', 'ᶠ' },
+                { 'g', 'ᶢ' }, { 'h', 'ʰ' }, { 'i', 'ⁱ' }, { 'j', 'ʲ' },
+                { 'k', 'ᵏ' }, { 'l', 'ˡ' }, { 'm', 'ᵐ' }, { 'n', 'ⁿ' },
+                { 'o', 'ᵒ' }, { 'p', 'ᵖ' }, { 'r', 'ʳ' }, { 's', 'ˢ' },
+                { 't', 'ᵗ' }, { 'u', 'ᵘ' }, { 'v', 'ᵛ' }, { 'w', 'ʷ' },
+                { 'x', 'ˣ' }, { 'y', 'ʸ' }, { 'z', 'ᶻ' },
+                // Uppercase letters
+                { 'A', 'ᴬ' }, { 'B', 'ᴮ' }, { 'C', 'ᶜ' }, { 'D', 'ᴰ' },
+                { 'E', 'ᴱ' }, { 'F', 'ᶠ' }, { 'G', 'ᴳ' }, { 'H', 'ᴴ' },
+                { 'I', 'ᴵ' }, { 'J', 'ᴶ' }, { 'K', 'ᴷ' }, { 'L', 'ᴸ' },
+                { 'M', 'ᴹ' }, { 'N', 'ᴺ' }, { 'O', 'ᴼ' }, { 'P', 'ᴾ' },
+                { 'R', 'ᴿ' }, { 'S', 'ˢ' }, { 'T', 'ᵀ' }, { 'U', 'ᵁ' },
+                { 'V', 'ⱽ' }, { 'W', 'ᵂ' }, { 'X', 'ˣ' }, { 'Y', 'ʸ' },
+                { 'Z', 'ᶻ' }
+            };
+
+
+            return string.Concat(text.Select(c => superscriptMap.ContainsKey(c) ? superscriptMap[c] : c));
+        }
+
     }
 }
