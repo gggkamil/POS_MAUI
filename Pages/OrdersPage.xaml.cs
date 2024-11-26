@@ -34,7 +34,6 @@ namespace CashierApp
                 {
                     var worksheet = package.Workbook.Worksheets[0];
 
-                    // Check if worksheet has a valid Dimension
                     if (worksheet.Dimension == null)
                     {
                         await DisplayAlert("Info", "No data found in the worksheet.", "OK");
@@ -46,32 +45,44 @@ namespace CashierApp
 
                     for (int row = 2; row <= rowCount; row++) // Starting from row 2 to skip headers
                     {
-                        // Read values in the row, including the CustomerName
-                        var customerName = worksheet.Cells[row, 2].Text?.Trim(); // Assuming column 2 is "CustomerName"
-
-                        // Skip row if CustomerName is empty
-                        if (string.IsNullOrEmpty(customerName))
-                            continue;
+                        var customerName = worksheet.Cells[row, 2].Text?.Trim();
+                        if (string.IsNullOrEmpty(customerName)) continue;
 
                         var orderId = int.TryParse(worksheet.Cells[row, 1].Text, out var id) ? id : 0;
                         var productQuantities = new ObservableCollection<ProductQuantity>();
 
-                        // Loop through the columns for product quantities starting from column 3 (assuming column 1 is ID and column 2 is CustomerName)
-                        for (int col = 3; col <= colCount; col++)
+                        for (int col = 3; col <= colCount; col++) // Starting at column 3 for product data
                         {
-                            string productName = worksheet.Cells[1, col].Text; // Column headers in row 1 are product names
+                            string productName = worksheet.Cells[1, col].Text; // Get header (product name)
+                            string cellValue = worksheet.Cells[row, col].Text; // Get cell value (quantity and superscript)
 
-                            // Try to parse the quantity, defaulting to 0 if it's empty or invalid
-                            decimal quantity = decimal.TryParse(worksheet.Cells[row, col].Text, out var parsedQuantity) ? parsedQuantity : 0;
+                            decimal quantity = 0;
+                            string superscript = null;
 
-                            // Add all products to the list, even if the quantity is 0
+                            if (!string.IsNullOrEmpty(cellValue))
+                            {
+                                // Extract numeric quantity and superscript
+                                var numericPart = new string(cellValue.TakeWhile(char.IsDigit).ToArray());
+                                var superscriptPart = new string(cellValue.SkipWhile(char.IsDigit).ToArray());
+
+                                if (decimal.TryParse(numericPart, out var parsedQuantity))
+                                {
+                                    quantity = parsedQuantity;
+                                }
+
+                                if (!string.IsNullOrEmpty(superscriptPart))
+                                {
+                                    superscript = ConvertFromSuperscript(superscriptPart);
+                                }
+                            }
+
                             productQuantities.Add(new ProductQuantity
                             {
                                 ProductName = productName,
-                                Quantity = quantity
+                                Quantity = quantity,
+                                Superscript = superscript
                             });
                         }
-
 
                         Orders.Add(new OrderRow
                         {
@@ -89,6 +100,25 @@ namespace CashierApp
                 await DisplayAlert("Error", $"Could not load orders: {ex.Message}", "OK");
             }
         }
+
+        private string ConvertFromSuperscript(string text)
+        {
+            var superscriptMap = new Dictionary<char, char>
+    {
+        { '⁰', '0' }, { '¹', '1' }, { '²', '2' }, { '³', '3' },
+        { '⁴', '4' }, { '⁵', '5' }, { '⁶', '6' }, { '⁷', '7' },
+        { '⁸', '8' }, { '⁹', '9' }, { 'ᵃ', 'a' }, { 'ᵇ', 'b' },
+        { 'ᶜ', 'c' }, { 'ᵈ', 'd' }, { 'ᵉ', 'e' }, { 'ᶠ', 'f' },
+        { 'ᶢ', 'g' }, { 'ʰ', 'h' }, { 'ⁱ', 'i' }, { 'ʲ', 'j' },
+        { 'ᵏ', 'k' }, { 'ˡ', 'l' }, { 'ᵐ', 'm' }, { 'ⁿ', 'n' },
+        { 'ᵒ', 'o' }, { 'ᵖ', 'p' }, { 'ʳ', 'r' }, { 'ˢ', 's' },
+        { 'ᵗ', 't' }, { 'ᵘ', 'u' }, { 'ᵛ', 'v' }, { 'ʷ', 'w' },
+        { 'ˣ', 'x' }, { 'ʸ', 'y' }, { 'ᶻ', 'z' }
+    };
+
+            return string.Concat(text.Select(c => superscriptMap.ContainsKey(c) ? superscriptMap[c] : c));
+        }
+
 
 
         private void EnsureFileExists()

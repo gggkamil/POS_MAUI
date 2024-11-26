@@ -126,6 +126,7 @@ namespace CashierApp
                 // Superscript Entry
                 var superscriptEntry = new Entry
                 {
+                    Text = productQuantity.Superscript,
                     Placeholder = "Superscript",
                     HorizontalOptions = LayoutOptions.Center,
                     WidthRequest = 80
@@ -241,7 +242,6 @@ namespace CashierApp
                 { 'o', 'ᵒ' }, { 'p', 'ᵖ' }, { 'r', 'ʳ' }, { 's', 'ˢ' },
                 { 't', 'ᵗ' }, { 'u', 'ᵘ' }, { 'v', 'ᵛ' }, { 'w', 'ʷ' },
                 { 'x', 'ˣ' }, { 'y', 'ʸ' }, { 'z', 'ᶻ' },
-                // Uppercase letters
                 { 'A', 'ᴬ' }, { 'B', 'ᴮ' }, { 'C', 'ᶜ' }, { 'D', 'ᴰ' },
                 { 'E', 'ᴱ' }, { 'F', 'ᶠ' }, { 'G', 'ᴳ' }, { 'H', 'ᴴ' },
                 { 'I', 'ᴵ' }, { 'J', 'ᴶ' }, { 'K', 'ᴷ' }, { 'L', 'ᴸ' },
