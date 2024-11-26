@@ -113,7 +113,8 @@ namespace CashierApp
         { 'ᵏ', 'k' }, { 'ˡ', 'l' }, { 'ᵐ', 'm' }, { 'ⁿ', 'n' },
         { 'ᵒ', 'o' }, { 'ᵖ', 'p' }, { 'ʳ', 'r' }, { 'ˢ', 's' },
         { 'ᵗ', 't' }, { 'ᵘ', 'u' }, { 'ᵛ', 'v' }, { 'ʷ', 'w' },
-        { 'ˣ', 'x' }, { 'ʸ', 'y' }, { 'ᶻ', 'z' }
+        { 'ˣ', 'x' }, { 'ʸ', 'y' }, { 'ᶻ', 'z' }, { '‧', '.' }
+      
     };
 
             return string.Concat(text.Select(c => superscriptMap.ContainsKey(c) ? superscriptMap[c] : c));
