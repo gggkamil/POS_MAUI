@@ -1,11 +1,20 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CashierApp.OrdersPage"
-             >
-
+             x:Class="CashierApp.OrdersPage">
     <ScrollView>
-        <StackLayout x:Name="OrdersContainer" Padding="10" Spacing="10">
+        <StackLayout Padding="10" Spacing="10">
+            <!-- Add Order Button -->
+            <Button 
+                Text="Add Order" 
+                Clicked="AddOrderButton_Clicked"
+                BackgroundColor="LightBlue"
+                TextColor="White"
+                HorizontalOptions="Center"
+                Margin="0,0,0,10" />
+
+            <!-- Orders Container -->
+            <StackLayout x:Name="OrdersContainer" Padding="10" Spacing="10">
+            </StackLayout>
         </StackLayout>
     </ScrollView>
 </ContentPage>

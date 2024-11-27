@@ -183,6 +183,44 @@ namespace CashierApp
                 OrdersContainer.Children.Add(frame); // Add the frame to the container
             }
         }
+        private async void AddOrderButton_Clicked(object sender, EventArgs e)
+        {
+            string clientName = await DisplayPromptAsync("New Order", "Enter the client's name:");
+
+            if (!string.IsNullOrWhiteSpace(clientName))
+            {
+                // Add new order to Excel
+                AddOrderToExcel(clientName);
+
+                // Reload orders from Excel and refresh the UI
+                Orders.Clear();
+                LoadOrdersFromExcel();
+            }
+        }
+        private void AddOrderToExcel(string clientName)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+
+                int lastRow = worksheet.Dimension.Rows;
+                int nextOrderId = lastRow; // Assuming the last row has the last order's ID
+
+                // Add new order data
+                worksheet.Cells[lastRow + 1, 1].Value = nextOrderId;
+                worksheet.Cells[lastRow + 1, 2].Value = clientName;
+
+                // Add default values for product columns if needed
+                for (int col = 3; col <= worksheet.Dimension.Columns; col++)
+                {
+                    worksheet.Cells[lastRow + 1, col].Value = ""; // Initialize with empty values
+                }
+
+                package.Save();
+            }
+        }
 
 
         private async Task OnOrderSelected(OrderRow selectedOrder)
