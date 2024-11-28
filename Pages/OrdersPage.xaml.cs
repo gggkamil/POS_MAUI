@@ -151,38 +151,124 @@ namespace CashierApp
 
         private void DisplayOrders()
         {
-            OrdersContainer.Children.Clear();  // Clear any previous content in the container
+            OrdersContainer.Children.Clear(); // Clear any previous content in the container
 
-            // Loop through each order and display it
             foreach (var order in Orders)
             {
-                var frame = new Frame
+                // Create a grid to hold the order info and delete button
+                var grid = new Grid
                 {
-                    BorderColor = Colors.Gray,
-                    Padding = 10,
-                    CornerRadius = 8,
+                    ColumnDefinitions =
+            {
+                new ColumnDefinition { Width = GridLength.Star },  // For order information
+                new ColumnDefinition { Width = GridLength.Auto }  // For delete button
+            },
+                    VerticalOptions = LayoutOptions.Center,
                     Margin = new Thickness(0, 5)
                 };
 
-                var stackLayout = new StackLayout { Spacing = 5 };
-
                 // Add basic order information (Order ID and Customer Name)
-                stackLayout.Children.Add(new Label
+                var orderInfo = new Label
                 {
                     Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
                     FontAttributes = FontAttributes.Bold,
-                    FontSize = 18
-                });
+                    FontSize = 18,
+                    VerticalOptions = LayoutOptions.Center
+                };
 
-                // Add a tap gesture recognizer for navigation
+                // Add a tap gesture recognizer to the order info
                 var tapGesture = new TapGestureRecognizer();
-                tapGesture.Tapped += async (sender, e) => await OnOrderSelected(order); // Navigate to Order Details page on tap
-                frame.GestureRecognizers.Add(tapGesture);
+                tapGesture.Tapped += async (sender, e) => await OnOrderSelected(order);
+                orderInfo.GestureRecognizers.Add(tapGesture);
 
-                frame.Content = stackLayout; // Set the content of the frame
-                OrdersContainer.Children.Add(frame); // Add the frame to the container
+                // Add Delete Button
+                var deleteButton = new Button
+                {
+                    Text = "X",
+                    Command = new Command(async () => await DeleteOrder(order)), // Bind to delete logic
+                    WidthRequest = 24,
+                    HeightRequest = 24,
+                    FontSize = 12,
+                    BackgroundColor = Colors.Red,
+                    TextColor = Colors.White,
+                    CornerRadius = 12,
+                    HorizontalOptions = LayoutOptions.End,
+                    VerticalOptions = LayoutOptions.Center
+                };
+
+                // Add elements to the grid
+                grid.Children.Add(orderInfo);
+                Grid.SetColumn(orderInfo, 0); // Place in the first column
+
+                grid.Children.Add(deleteButton);
+                Grid.SetColumn(deleteButton, 1); // Place in the second column
+
+                // Wrap the grid in a frame for styling
+                var frame = new Frame
+                {
+                    BorderColor = Colors.Gray,
+                    Padding = new Thickness(10, 5),
+                    CornerRadius = 8,
+                    Content = grid // Set the grid as the content of the frame
+                };
+
+                // Add the frame to the container
+                OrdersContainer.Children.Add(frame);
             }
         }
+
+
+        private async Task DeleteOrder(OrderRow order)
+        {
+            bool confirm = await DisplayAlert("Delete Order",
+                $"Are you sure you want to delete the order for '{order.CustomerName}'?", "Yes", "No");
+
+            if (!confirm) return;
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            try
+            {
+                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+
+                    // Find the row corresponding to the order
+                    int rowToDelete = -1;
+                    for (int row = 2; row <= worksheet.Dimension.Rows; row++) // Start from row 2 to skip headers
+                    {
+                        if (int.TryParse(worksheet.Cells[row, 1].Text, out var id) && id == order.OrderId)
+                        {
+                            rowToDelete = row;
+                            break;
+                        }
+                    }
+
+                    if (rowToDelete == -1)
+                    {
+                        await DisplayAlert("Error", "Order not found.", "OK");
+                        return;
+                    }
+
+                    // Delete the row
+                    worksheet.DeleteRow(rowToDelete);
+
+                    // Save the Excel file
+                    package.Save();
+                }
+
+                // Remove from the observable collection and refresh UI
+                Orders.Remove(order);
+                DisplayOrders();
+
+                await DisplayAlert("Success", "Order deleted successfully.", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Could not delete order: {ex.Message}", "OK");
+            }
+        }
+
         private async void AddOrderButton_Clicked(object sender, EventArgs e)
         {
             string clientName = await DisplayPromptAsync("New Order", "Enter the client's name:");
