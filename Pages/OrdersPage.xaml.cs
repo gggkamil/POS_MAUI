@@ -155,12 +155,12 @@ namespace CashierApp
 
             foreach (var order in Orders)
             {
-                // Create a grid to hold the order info and delete button
-                var grid = new Grid
+                // Create a grid to hold the order info, product summary, and delete button
+                var mainGrid = new Grid
                 {
                     ColumnDefinitions =
             {
-                new ColumnDefinition { Width = GridLength.Star },  // For order information
+                new ColumnDefinition { Width = GridLength.Star },  // For order information and product summary
                 new ColumnDefinition { Width = GridLength.Auto }  // For delete button
             },
                     VerticalOptions = LayoutOptions.Center,
@@ -179,7 +179,51 @@ namespace CashierApp
                 // Add a tap gesture recognizer to the order info
                 var tapGesture = new TapGestureRecognizer();
                 tapGesture.Tapped += async (sender, e) => await OnOrderSelected(order);
-                orderInfo.GestureRecognizers.Add(tapGesture);
+                
+
+                // Create a small grid to display product names (top) and quantities (bottom)
+                var productGrid = new Grid
+                {
+                    ColumnSpacing = 5,
+                    RowDefinitions =
+            {
+                new RowDefinition { Height = GridLength.Auto }, // Product Names
+                new RowDefinition { Height = GridLength.Auto }  // Quantities
+            }
+                };
+
+                int column = 0;
+                foreach (var product in order.ProductQuantities)
+                {
+                    if (product.Quantity > 0 || !string.IsNullOrEmpty(product.Superscript))
+                    {
+                        var productNameLabel = new Label
+                        {
+                            Text = product.ProductName,
+                            FontSize = 12,
+                            HorizontalTextAlignment = TextAlignment.Center
+                        };
+                        productGrid.Children.Add(productNameLabel);
+                        Grid.SetRow(productNameLabel, 0); // Top row for product names
+                        Grid.SetColumn(productNameLabel, column);
+
+                        var columnDefinition = new ColumnDefinition { Width = GridLength.Auto };
+                        productGrid.ColumnDefinitions.Add(columnDefinition);
+
+                        // Add quantities (second row)
+                        var quantityLabel = new Label
+                        {
+                            Text = $"{product.Quantity}{(string.IsNullOrEmpty(product.Superscript) ? "" : product.Superscript)}",
+                            FontSize = 12,
+                            HorizontalTextAlignment = TextAlignment.Center
+                        };
+                        productGrid.Children.Add(quantityLabel);
+                        Grid.SetRow(quantityLabel, 1); // Bottom row for quantities
+                        Grid.SetColumn(quantityLabel, column);
+
+                        column++;
+                    }
+                }
 
                 // Add Delete Button
                 var deleteButton = new Button
@@ -196,11 +240,18 @@ namespace CashierApp
                     VerticalOptions = LayoutOptions.Center
                 };
 
-                // Add elements to the grid
-                grid.Children.Add(orderInfo);
-                Grid.SetColumn(orderInfo, 0); // Place in the first column
+                // Add elements to the main grid
+                var orderInfoStack = new StackLayout { Spacing = 5 };
+                orderInfoStack.Children.Add(orderInfo);
+                if (column > 0) // Only add product grid if there are products to display
+                {
+                    orderInfoStack.Children.Add(productGrid);
+                }
 
-                grid.Children.Add(deleteButton);
+                mainGrid.Children.Add(orderInfoStack);
+                Grid.SetColumn(orderInfoStack, 0); // Place in the first column
+
+                mainGrid.Children.Add(deleteButton);
                 Grid.SetColumn(deleteButton, 1); // Place in the second column
 
                 // Wrap the grid in a frame for styling
@@ -209,13 +260,15 @@ namespace CashierApp
                     BorderColor = Colors.Gray,
                     Padding = new Thickness(10, 5),
                     CornerRadius = 8,
-                    Content = grid // Set the grid as the content of the frame
+                    Content = mainGrid // Set the grid as the content of the frame
                 };
-
+                frame.GestureRecognizers.Add(tapGesture);
                 // Add the frame to the container
                 OrdersContainer.Children.Add(frame);
             }
         }
+
+
 
 
         private async Task DeleteOrder(OrderRow order)
