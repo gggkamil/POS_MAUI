@@ -24,7 +24,17 @@ namespace CashierApp
             EnsureFileExists();
             LoadOrdersFromExcel();
         }
-
+        public void RefreshOrders()
+        {
+            Orders.Clear(); // Clear current orders
+            LoadOrdersFromExcel(); // Reload orders from the Excel file
+        }
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            RefreshOrders();
+        }
+       
         private async void LoadOrdersFromExcel()
         {
             try
