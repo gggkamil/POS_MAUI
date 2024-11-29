@@ -14,7 +14,7 @@ namespace CashierApp
 {
     public partial class MainPage : TabbedPage
     {
-        private decimal totalAmount = 0; // Variable to store the total amount 
+       // private decimal totalAmount = 0; // Variable to store the total amount 
         private List<Product> products = new List<Product>(); // List to store products 
         private readonly LocalAuthService _authService; // Authentication service 
         private readonly IReceiptSaveService _receiptSaveService; // Add the ReceiptSaveService dependency
@@ -29,6 +29,7 @@ namespace CashierApp
             _authService.SetCurrentUser(username);
             _receiptSaveService = receiptSaveService; // Initialize the receipt save service
             AddOrdersTab();
+            AddSummaryTab();
             AddProductsTab();
             AddExcelListTab();
             CheckUserAccess();
@@ -52,6 +53,11 @@ namespace CashierApp
         {
             var productPage = new CashierApp.OrdersPage();
             Children.Add(new NavigationPage(productPage) { Title = "Zamówienia" });
+        }
+        private void AddSummaryTab()
+        {
+            var summaryPage = new CashierApp.ProductSummaryPage();
+            Children.Add(new NavigationPage(summaryPage) { Title = "Podsumowanie" });
         }
 
         private void AddAdminEditTab(Product product)

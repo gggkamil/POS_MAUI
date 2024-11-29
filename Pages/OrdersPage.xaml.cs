@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using OfficeOpenXml.Style;
 
 namespace CashierApp
 {
@@ -34,7 +35,7 @@ namespace CashierApp
             base.OnAppearing();
             RefreshOrders();
         }
-       
+
         private async void LoadOrdersFromExcel()
         {
             try
@@ -52,6 +53,9 @@ namespace CashierApp
 
                     int rowCount = worksheet.Dimension.Rows;
                     int colCount = worksheet.Dimension.Columns;
+
+                    // Dictionary to keep track of product quantities by product name and superscript
+                    var productSummary = new Dictionary<string, decimal>();
 
                     for (int row = 2; row <= rowCount; row++) // Starting from row 2 to skip headers
                     {
@@ -92,6 +96,17 @@ namespace CashierApp
                                 Quantity = quantity,
                                 Superscript = superscript
                             });
+
+                            // Update product summary dictionary
+                            string productKey = $"{productName}^{superscript ?? "No Superscript"}"; // Combine product and superscript
+                            if (productSummary.ContainsKey(productKey))
+                            {
+                                productSummary[productKey] += quantity; // Add quantity to existing entry
+                            }
+                            else
+                            {
+                                productSummary[productKey] = quantity; // Create a new entry for this product
+                            }
                         }
 
                         Orders.Add(new OrderRow
@@ -102,6 +117,9 @@ namespace CashierApp
                         });
                     }
 
+                    // After loading orders, write the summary to the bottom of the worksheet
+                    WriteProductSummaryToExcel(productSummary, worksheet);
+
                     DisplayOrders();
                 }
             }
@@ -109,6 +127,33 @@ namespace CashierApp
             {
                 await DisplayAlert("Error", $"Could not load orders: {ex.Message}", "OK");
             }
+        }
+
+        private void WriteProductSummaryToExcel(Dictionary<string, decimal> productSummary, ExcelWorksheet worksheet)
+        {
+            // Start writing the summary at the row after the last order data
+            int summaryRowStart = worksheet.Dimension.Rows + 2; // Two rows after the last order row
+
+            // Add header for the summary section
+            worksheet.Cells[summaryRowStart, 1].Value = "Product Summary";
+            worksheet.Cells[summaryRowStart, 1].Style.Font.Bold = true;
+
+            int rowIndex = summaryRowStart + 1; // Start from the next row
+
+            // Write each product and its total quantity
+            foreach (var product in productSummary)
+            {
+                string productName = product.Key;
+                decimal totalQuantity = product.Value;
+
+                worksheet.Cells[rowIndex, 1].Value = productName;
+                worksheet.Cells[rowIndex, 2].Value = totalQuantity;
+                rowIndex++;
+            }
+
+            // Save the changes to the Excel file
+            worksheet.Cells[summaryRowStart, 1, rowIndex - 1, 2].AutoFitColumns();
+            worksheet.Cells[summaryRowStart, 1, rowIndex - 1, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
         }
 
         private string ConvertFromSuperscript(string text)
