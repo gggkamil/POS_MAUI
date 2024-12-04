@@ -83,10 +83,14 @@ namespace CashierApp
                                 {
                                     superscript = ConvertFromSuperscript(superscriptPart);
                                 }
+                                else
+                                {
+                                    superscript = null; // explicitly set to null if no superscript part exists
+                                }
                             }
 
-                            // Combine product and superscript to create a unique key
-                            string productKey = $"{productName}^{superscript ?? "No Superscript"}";
+
+                            string productKey = superscript == null ? productName : $"{productName}^{superscript}";
                             if (productSummary.ContainsKey(productKey))
                             {
                                 productSummary[productKey] += quantity;

@@ -6,7 +6,7 @@
         <StackLayout Padding="10" Spacing="10">
             <!-- Add Order Button -->
             <Button 
-                Text="Add Order" 
+                Text="Dodaj zamówienie" 
                 Clicked="AddOrderButton_Clicked"
                 BackgroundColor="Green"
                 TextColor="White"
