@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Maui.Controls;
 
 namespace CashierApp
@@ -10,28 +11,35 @@ namespace CashierApp
     {
         private string folderPath = @"C:\Kasa\Zamówienia";
         private string fileName = "wydawka_uaktualniona_tylko.xlsx";
+        private string conversionFileName = "przelicznik.xlsx";
         private string filePath;
+        private string conversionFilePath;
 
         public ProductSummaryPage()
         {
             InitializeComponent();
             filePath = Path.Combine(folderPath, fileName);
+            conversionFilePath = Path.Combine(folderPath, conversionFileName);
             LoadProductSummary();
         }
+
         public void RefreshOrders()
         {
-           ProductSummaryGrid.Clear();
-            LoadProductSummary(); 
+            ProductSummaryGrid.Clear();
+            MeatRequirementsGrid.Clear(); // Ensure meat grid is also cleared
+            LoadProductSummary();
         }
+
         protected override void OnAppearing()
         {
             base.OnAppearing();
             RefreshOrders();
         }
+
         private void LoadProductSummary()
         {
-
             var productSummary = new Dictionary<string, decimal>();
+            var conversionFactors = LoadConversionFactors(conversionFilePath); // Load conversion factors
 
             try
             {
@@ -75,7 +83,6 @@ namespace CashierApp
                                 }
                             }
 
-
                             // Combine product and superscript to create a unique key
                             string productKey = $"{productName}^{superscript ?? "No Superscript"}";
                             if (productSummary.ContainsKey(productKey))
@@ -90,11 +97,16 @@ namespace CashierApp
                     }
                 }
 
+                // Calculate total meat requirements
+                var meatRequirements = CalculateMeatRequirements(productSummary, conversionFactors);
+
+                // Display in grids
                 DisplaySummaryInGrid(productSummary);
+                DisplayMeatRequirementsInGrid(meatRequirements);
+
                 if (productSummary.Count == 0)
                 {
                     DisplayAlert("Info", "No products found to display.", "OK");
-                    return;
                 }
             }
             catch (Exception ex)
@@ -103,70 +115,139 @@ namespace CashierApp
             }
         }
 
-        private void DisplaySummaryInGrid(Dictionary<string, decimal> productSummary)
+        private Dictionary<string, Dictionary<string, decimal>> LoadConversionFactors(string conversionFilePath)
         {
-            // Clear existing rows and children to avoid duplication
-            ProductSummaryGrid.RowDefinitions.Clear();
-            ProductSummaryGrid.Children.Clear();
+            var conversionFactors = new Dictionary<string, Dictionary<string, decimal>>();
 
-            // Add header row
-            ProductSummaryGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-            var headerProductLabel = new Label
+            try
             {
-                Text = "Product",
-                FontAttributes = FontAttributes.Bold,
-                HorizontalOptions = LayoutOptions.Center
-            };
-            ProductSummaryGrid.Children.Add(headerProductLabel);
-            Grid.SetRow(headerProductLabel, 0);
-            Grid.SetColumn(headerProductLabel, 0);
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(new FileInfo(conversionFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
 
-            var headerQuantityLabel = new Label
+                    if (worksheet.Dimension == null) throw new Exception("Conversion data not found.");
+
+                    int rowCount = worksheet.Dimension.Rows;
+                    int colCount = worksheet.Dimension.Columns;
+
+                    for (int row = 2; row <= rowCount; row++) // Start from row 2 (meats row)
+                    {
+                        string meatType = worksheet.Cells[row, 1].Text; // First column: Meat type
+                        conversionFactors[meatType] = new Dictionary<string, decimal>();
+
+                        for (int col = 2; col <= colCount; col++) // Start from column 2 for products
+                        {
+                            string productName = worksheet.Cells[1, col].Text; // Header: Product name
+                            if (decimal.TryParse(worksheet.Cells[row, col].Text, out var factor))
+                            {
+                                conversionFactors[meatType][productName] = factor;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
             {
-                Text = "Quantity",
-                FontAttributes = FontAttributes.Bold,
-                HorizontalOptions = LayoutOptions.Center
-            };
-            ProductSummaryGrid.Children.Add(headerQuantityLabel);
-            Grid.SetRow(headerQuantityLabel, 0);
-            Grid.SetColumn(headerQuantityLabel, 1);
+                DisplayAlert("Error", $"Error reading conversion file: {ex.Message}", "OK");
+            }
 
-            int rowIndex = 1; // Start from row 1 for product data
+            return conversionFactors;
+        }
+
+        private Dictionary<string, decimal> CalculateMeatRequirements(Dictionary<string, decimal> productSummary, Dictionary<string, Dictionary<string, decimal>> conversionFactors)
+        {
+            var meatRequirements = new Dictionary<string, decimal>();
 
             foreach (var product in productSummary)
             {
-                // Create a new row for the product
-                ProductSummaryGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                string productName = product.Key.Split('^')[0]; // Extract product name
+                decimal productQuantity = product.Value;
 
-                // Add product name label
-                var productNameLabel = new Label
+                foreach (var meat in conversionFactors)
                 {
-                    Text = product.Key,
-                    HorizontalOptions = LayoutOptions.Start,
-                    FontSize = 14
-                };
-                ProductSummaryGrid.Children.Add(productNameLabel);
-                Grid.SetRow(productNameLabel, rowIndex); // STATIC CALL
-                Grid.SetColumn(productNameLabel, 0);     // STATIC CALL
+                    string meatType = meat.Key;
 
-                // Add quantity label
-                var quantityLabel = new Label
-                {
-                    Text = product.Value.ToString(),
-                    HorizontalOptions = LayoutOptions.Center,
-                    FontSize = 14
-                };
-                ProductSummaryGrid.Children.Add(quantityLabel);
-                Grid.SetRow(quantityLabel, rowIndex);    // STATIC CALL
-                Grid.SetColumn(quantityLabel, 1);       // STATIC CALL
+                    if (meat.Value.ContainsKey(productName))
+                    {
+                        decimal factor = meat.Value[productName];
+                        decimal requirement = productQuantity * factor;
 
-                rowIndex++; // Move to the next row
+                        if (meatRequirements.ContainsKey(meatType))
+                        {
+                            meatRequirements[meatType] += requirement;
+                        }
+                        else
+                        {
+                            meatRequirements[meatType] = requirement;
+                        }
+                    }
+                }
             }
+
+            return meatRequirements;
         }
 
+        private void DisplayMeatRequirementsInGrid(Dictionary<string, decimal> meatRequirements)
+        {
+            MeatRequirementsGrid.RowDefinitions.Clear();
+            MeatRequirementsGrid.Children.Clear();
 
+            // Add header row
+            MeatRequirementsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
+            var headerMeatLabel = new Label
+            {
+                Text = "Meat",
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
+                HorizontalOptions = LayoutOptions.Center
+            };
+            MeatRequirementsGrid.Children.Add(headerMeatLabel);
+            Grid.SetRow(headerMeatLabel, 0);
+            Grid.SetColumn(headerMeatLabel, 0);
+
+            var headerRequirementLabel = new Label
+            {
+                Text = "Requirement",
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
+                HorizontalOptions = LayoutOptions.Center
+            };
+            MeatRequirementsGrid.Children.Add(headerRequirementLabel);
+            Grid.SetRow(headerRequirementLabel, 0);
+            Grid.SetColumn(headerRequirementLabel, 1);
+
+            int rowIndex = 1;
+            foreach (var meat in meatRequirements)
+            {
+                MeatRequirementsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                var meatLabel = new Label
+                {
+                    Text = meat.Key,
+                    HorizontalOptions = LayoutOptions.Start,
+                    TextColor = Colors.Black,
+                    FontSize = 14
+                };
+                MeatRequirementsGrid.Children.Add(meatLabel);
+                Grid.SetRow(meatLabel, rowIndex);
+                Grid.SetColumn(meatLabel, 0);
+
+                var requirementLabel = new Label
+                {
+                    Text = meat.Value.ToString("F3"),
+                    HorizontalOptions = LayoutOptions.Center,
+                    TextColor = Colors.Black,
+                    FontSize = 14
+                };
+                MeatRequirementsGrid.Children.Add(requirementLabel);
+                Grid.SetRow(requirementLabel, rowIndex);
+                Grid.SetColumn(requirementLabel, 1);
+
+                rowIndex++;
+            }
+        }
 
         private string ConvertFromSuperscript(string text)
         {
@@ -180,10 +261,71 @@ namespace CashierApp
                 { 'ᵏ', 'k' }, { 'ˡ', 'l' }, { 'ᵐ', 'm' }, { 'ⁿ', 'n' },
                 { 'ᵒ', 'o' }, { 'ᵖ', 'p' }, { 'ʳ', 'r' }, { 'ˢ', 's' },
                 { 'ᵗ', 't' }, { 'ᵘ', 'u' }, { 'ᵛ', 'v' }, { 'ʷ', 'w' },
-                { 'ˣ', 'x' }, { 'ʸ', 'y' }, { 'ᶻ', 'z' }, { '‧', '.' }
+                { 'ˣ', 'x' }, { 'ʸ', 'y' }, { 'ᶻ', 'z' }
             };
 
-            return string.Concat(text.Select(c => superscriptMap.ContainsKey(c) ? superscriptMap[c] : c));
+            return new string(text.Select(c => superscriptMap.ContainsKey(c) ? superscriptMap[c] : c).ToArray());
+        }
+
+        private void DisplaySummaryInGrid(Dictionary<string, decimal> productSummary)
+        {
+            ProductSummaryGrid.RowDefinitions.Clear();
+            ProductSummaryGrid.Children.Clear();
+
+            // Add header row
+            ProductSummaryGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var headerProductLabel = new Label
+            {
+                Text = "Product",
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
+                HorizontalOptions = LayoutOptions.Center
+            };
+            ProductSummaryGrid.Children.Add(headerProductLabel);
+            Grid.SetRow(headerProductLabel, 0);
+            Grid.SetColumn(headerProductLabel, 0);
+
+            var headerQuantityLabel = new Label
+            {
+                Text = "Quantity",
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
+                HorizontalOptions = LayoutOptions.Center
+            };
+            ProductSummaryGrid.Children.Add(headerQuantityLabel);
+            Grid.SetRow(headerQuantityLabel, 0);
+            Grid.SetColumn(headerQuantityLabel, 1);
+
+            int rowIndex = 1;
+            foreach (var product in productSummary)
+            {
+                ProductSummaryGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                var productLabel = new Label
+                {
+                    Text = product.Key,
+                    HorizontalOptions = LayoutOptions.Start,
+                    TextColor = Colors.Black,
+                    FontSize = 14
+                };
+                ProductSummaryGrid.Children.Add(productLabel);
+                Grid.SetRow(productLabel, rowIndex);
+                Grid.SetColumn(productLabel, 0);
+
+                var quantityLabel = new Label
+                {
+                    Text = product.Value.ToString("F3"),
+                    HorizontalOptions = LayoutOptions.Center,
+                    TextColor = Colors.Black,
+                    FontSize = 14
+                };
+                ProductSummaryGrid.Children.Add(quantityLabel);
+                Grid.SetRow(quantityLabel, rowIndex);
+                Grid.SetColumn(quantityLabel, 1);
+
+                rowIndex++;
+            }
         }
     }
 }
