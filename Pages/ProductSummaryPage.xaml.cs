@@ -14,6 +14,8 @@ namespace CashierApp
         private string conversionFileName = "przelicznik.xlsx";
         private string filePath;
         private string conversionFilePath;
+        private Dictionary<string, decimal> productSummary = new Dictionary<string, decimal>();
+        private Dictionary<string, decimal> meatRequirements = new Dictionary<string, decimal>();
 
         public ProductSummaryPage()
         {
@@ -38,7 +40,7 @@ namespace CashierApp
 
         private void LoadProductSummary()
         {
-            var productSummary = new Dictionary<string, decimal>();
+            productSummary.Clear(); // Ensure the dictionary is cleared before loading new data
             var conversionFactors = LoadConversionFactors(conversionFilePath); // Load conversion factors
 
             try
@@ -98,7 +100,7 @@ namespace CashierApp
                 }
 
                 // Calculate total meat requirements
-                var meatRequirements = CalculateMeatRequirements(productSummary, conversionFactors);
+                meatRequirements = CalculateMeatRequirements(productSummary, conversionFactors);
 
                 // Display in grids
                 DisplaySummaryInGrid(productSummary);
@@ -114,6 +116,7 @@ namespace CashierApp
                 DisplayAlert("Error", $"Error reading file: {ex.Message}", "OK");
             }
         }
+
 
         private Dictionary<string, Dictionary<string, decimal>> LoadConversionFactors(string conversionFilePath)
         {
@@ -326,6 +329,87 @@ namespace CashierApp
 
                 rowIndex++;
             }
+        }
+        private void OnSaveSummaryClicked(object sender, EventArgs e)
+        {
+            // Get the current product summary and meat requirements data
+            var productSummary = GetProductSummaryData(); // Replace with your method to retrieve product summary data
+            var meatRequirements = GetMeatRequirementsData(); // Replace with your method to retrieve meat requirements data
+
+            // Call the method to save the summary to Excel
+            SaveSummaryToExcel(productSummary, meatRequirements);
+        }
+        private void SaveSummaryToExcel(Dictionary<string, decimal> productSummary, Dictionary<string, decimal> meatRequirements)
+        {
+            try
+            {
+                // Generate the file name with the current date (e.g., "Summary20241204.xlsx")
+                string currentDate = DateTime.Now.ToString("yyyyMMdd");
+                string newFilePath = Path.Combine(folderPath, $"Summary{currentDate}.xlsx");
+
+                // Check if the directory exists, create if not
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                using (var package = new ExcelPackage())
+                {
+                    // Create a worksheet for Product Summary
+                    var productSheet = package.Workbook.Worksheets.Add("Product Summary");
+
+                    // Create headers for the product summary
+                    productSheet.Cells[1, 1].Value = "Product";
+                    productSheet.Cells[1, 2].Value = "Quantity";
+
+                    // Add actual product data
+                    int row = 2;
+                    foreach (var product in productSummary)
+                    {
+                        productSheet.Cells[row, 1].Value = product.Key;  // Product Name (key)
+                        productSheet.Cells[row, 2].Value = product.Value; // Quantity
+                        row++;
+                    }
+
+                    // Create a worksheet for Meat Requirements
+                    var meatSheet = package.Workbook.Worksheets.Add("Meat Requirements");
+
+                    // Create headers for the meat requirements
+                    meatSheet.Cells[1, 1].Value = "Meat Type";
+                    meatSheet.Cells[1, 2].Value = "Requirement";
+
+                    // Add actual meat requirement data
+                    row = 2;
+                    foreach (var meat in meatRequirements)
+                    {
+                        meatSheet.Cells[row, 1].Value = meat.Key;  // Meat Type (key)
+                        meatSheet.Cells[row, 2].Value = meat.Value; // Requirement
+                        row++;
+                    }
+
+                    // Save the file to the specified path
+                    FileInfo fileInfo = new FileInfo(newFilePath);
+                    package.SaveAs(fileInfo);
+
+                    // Display a success message
+                    DisplayAlert("Success", $"Summary has been saved to: {newFilePath}", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                DisplayAlert("Error", $"Error saving file: {ex.Message}", "OK");
+            }
+        }
+
+        private Dictionary<string, decimal> GetProductSummaryData()
+        {
+            // Return the actual product summary data stored in the class-level variable
+            return productSummary;
+        }
+        private Dictionary<string, decimal> GetMeatRequirementsData()
+        {
+            // Return the actual meat requirements data stored in the class-level variable
+            return meatRequirements;
         }
     }
 }

@@ -66,7 +66,11 @@
                        BackgroundColor="#D3D3D3" 
                        Padding="5" />
             </Grid>
-
+            <Button 
+                Text="Save Summary" 
+                Clicked="OnSaveSummaryClicked" 
+                VerticalOptions="Center" 
+                HorizontalOptions="Center" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
