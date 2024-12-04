@@ -194,10 +194,8 @@ namespace CashierApp
                     worksheet.Cells[1, 1].Value = "LP."; // Order ID
                     worksheet.Cells[1, 2].Value = "Imię i nazwisko"; // Customer name
 
-                    // Add more product columns as needed
-                    worksheet.Cells[1, 3].Value = "Product 1";
-                    worksheet.Cells[1, 4].Value = "Product 2";
-                    worksheet.Cells[1, 5].Value = "Product 3";
+
+
 
                     package.Save();
                 }
@@ -228,6 +226,7 @@ namespace CashierApp
                     Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
                     FontAttributes = FontAttributes.Bold,
                     FontSize = 18,
+                    TextColor = Colors.Black,
                     VerticalOptions = LayoutOptions.Center
                 };
 
@@ -256,7 +255,9 @@ namespace CashierApp
                         {
                             Text = product.ProductName,
                             FontSize = 12,
+                            TextColor = Colors.Black,
                             HorizontalTextAlignment = TextAlignment.Center
+
                         };
                         productGrid.Children.Add(productNameLabel);
                         Grid.SetRow(productNameLabel, 0); // Top row for product names
@@ -270,6 +271,7 @@ namespace CashierApp
                         {
                             Text = $"{product.Quantity}{(string.IsNullOrEmpty(product.Superscript) ? "" : product.Superscript)}",
                             FontSize = 12,
+                            TextColor = Colors.Black,
                             HorizontalTextAlignment = TextAlignment.Center
                         };
                         productGrid.Children.Add(quantityLabel);
@@ -315,7 +317,8 @@ namespace CashierApp
                     BorderColor = Colors.Gray,
                     Padding = new Thickness(10, 5),
                     CornerRadius = 8,
-                    Content = mainGrid // Set the grid as the content of the frame
+                    Content = mainGrid,
+                    BackgroundColor = Colors.White
                 };
                 frame.GestureRecognizers.Add(tapGesture);
                 // Add the frame to the container

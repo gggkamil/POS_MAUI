@@ -2,13 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CashierApp.OrdersListPage"
+             BackgroundColor="#F0F0F0"
              Title="Order Details">
     <ContentPage.Content>
         <ScrollView>
-            <StackLayout x:Name="OrdersStack" Padding="10" Spacing="10">
+            <StackLayout x:Name="OrdersStack" Padding="10" Spacing="10" BackgroundColor="White">
 
                 <!-- Customer Information Section -->
-                <Frame BorderColor="Gray" CornerRadius="8" Padding="10" Margin="0,5">
+                <Frame BorderColor="Gray" CornerRadius="8" Padding="10" Margin="0,5" BackgroundColor="White">
                     <StackLayout>
                         <Label x:Name="CustomerNameLabel" 
                                Text="Customer Name"
@@ -42,8 +43,8 @@
                         <!-- Product entries will be added here dynamically -->
                     </Grid>
                 </StackLayout>
-   <Button Text="Save Changes"
-                        BackgroundColor="DodgerBlue"
+   <Button Text="Zapisz"
+                        BackgroundColor="Green"
                         TextColor="White"
                         FontAttributes="Bold"
                         Margin="0,15,0,0"

@@ -1,5 +1,6 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             BackgroundColor="#F0F0F0"
              x:Class="CashierApp.OrdersPage">
     <ScrollView>
         <StackLayout Padding="10" Spacing="10">
@@ -7,7 +8,7 @@
             <Button 
                 Text="Add Order" 
                 Clicked="AddOrderButton_Clicked"
-                BackgroundColor="LightBlue"
+                BackgroundColor="Green"
                 TextColor="White"
                 HorizontalOptions="Center"
                 Margin="0,0,0,10" />
