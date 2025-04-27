@@ -382,7 +382,7 @@ namespace CashierApp
 
         private async void AddOrderButton_Clicked(object sender, EventArgs e)
         {
-            string clientName = await DisplayPromptAsync("New Order", "Enter the client's name:");
+            string clientName = await DisplayPromptAsync("Nowe zamówienie", "Podaj imię klienta:");
 
             if (!string.IsNullOrWhiteSpace(clientName))
             {
