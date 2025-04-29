@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using OfficeOpenXml.Style;
+using ButchersCashier.Models;
 
 namespace CashierApp
 {
@@ -194,10 +195,8 @@ namespace CashierApp
                     worksheet.Cells[1, 1].Value = "LP."; // Order ID
                     worksheet.Cells[1, 2].Value = "Imię i nazwisko"; // Customer name
 
-                    // Add more product columns as needed
-                    worksheet.Cells[1, 3].Value = "Product 1";
-                    worksheet.Cells[1, 4].Value = "Product 2";
-                    worksheet.Cells[1, 5].Value = "Product 3";
+
+
 
                     package.Save();
                 }
@@ -225,9 +224,10 @@ namespace CashierApp
                 // Add basic order information (Order ID and Customer Name)
                 var orderInfo = new Label
                 {
-                    Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
+                    Text = $"ID: {order.OrderId} - {order.CustomerName}",
                     FontAttributes = FontAttributes.Bold,
                     FontSize = 18,
+                    TextColor = Colors.Black,
                     VerticalOptions = LayoutOptions.Center
                 };
 
@@ -256,7 +256,9 @@ namespace CashierApp
                         {
                             Text = product.ProductName,
                             FontSize = 12,
+                            TextColor = Colors.Black,
                             HorizontalTextAlignment = TextAlignment.Center
+
                         };
                         productGrid.Children.Add(productNameLabel);
                         Grid.SetRow(productNameLabel, 0); // Top row for product names
@@ -270,6 +272,7 @@ namespace CashierApp
                         {
                             Text = $"{product.Quantity}{(string.IsNullOrEmpty(product.Superscript) ? "" : product.Superscript)}",
                             FontSize = 12,
+                            TextColor = Colors.Black,
                             HorizontalTextAlignment = TextAlignment.Center
                         };
                         productGrid.Children.Add(quantityLabel);
@@ -315,7 +318,8 @@ namespace CashierApp
                     BorderColor = Colors.Gray,
                     Padding = new Thickness(10, 5),
                     CornerRadius = 8,
-                    Content = mainGrid // Set the grid as the content of the frame
+                    Content = mainGrid,
+                    BackgroundColor = Colors.White
                 };
                 frame.GestureRecognizers.Add(tapGesture);
                 // Add the frame to the container
@@ -328,8 +332,8 @@ namespace CashierApp
 
         private async Task DeleteOrder(OrderRow order)
         {
-            bool confirm = await DisplayAlert("Delete Order",
-                $"Are you sure you want to delete the order for '{order.CustomerName}'?", "Yes", "No");
+            bool confirm = await DisplayAlert("Usuń zamówienie",
+                $"Na pewno chcesz usunąć zmówianie dla '{order.CustomerName}'?", "Yes", "No");
 
             if (!confirm) return;
 
@@ -354,7 +358,7 @@ namespace CashierApp
 
                     if (rowToDelete == -1)
                     {
-                        await DisplayAlert("Error", "Order not found.", "OK");
+                        await DisplayAlert("Błąd", "Nie znaleziono zamówienia.", "OK");
                         return;
                     }
 
@@ -369,17 +373,17 @@ namespace CashierApp
                 Orders.Remove(order);
                 DisplayOrders();
 
-                await DisplayAlert("Success", "Order deleted successfully.", "OK");
+                await DisplayAlert("OK!", "Zamówienie zostało usunięte", "OK");
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Could not delete order: {ex.Message}", "OK");
+                await DisplayAlert("Błąd", $"Nie można usunąć zamówienia: {ex.Message}", "OK");
             }
         }
 
         private async void AddOrderButton_Clicked(object sender, EventArgs e)
         {
-            string clientName = await DisplayPromptAsync("New Order", "Enter the client's name:");
+            string clientName = await DisplayPromptAsync("Nowe zamówienie", "Podaj imię klienta:");
 
             if (!string.IsNullOrWhiteSpace(clientName))
             {
@@ -421,19 +425,5 @@ namespace CashierApp
         {
             await Navigation.PushAsync(new OrdersListPage(selectedOrder));
         }
-    }
-
-    public class ProductQuantity
-    {
-        public string ProductName { get; set; }
-        public decimal Quantity { get; set; }
-        public string Superscript { get; set; }
-    }
-
-    public class OrderRow
-    {
-        public int OrderId { get; set; }
-        public string CustomerName { get; set; }
-        public ObservableCollection<ProductQuantity> ProductQuantities { get; set; }
     }
 }

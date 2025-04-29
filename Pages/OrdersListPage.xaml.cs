@@ -3,6 +3,7 @@ using Microsoft.Maui.Controls;
 using OfficeOpenXml;
 using System.IO;
 using System.Threading.Tasks;
+using ButchersCashier.Models;
 
 namespace CashierApp
 {
@@ -27,7 +28,8 @@ namespace CashierApp
                 BorderColor = Colors.Gray,
                 Padding = 10,
                 CornerRadius = 8,
-                Margin = new Thickness(0, 5)
+                Margin = new Thickness(0, 5),
+                BackgroundColor = Colors.White
             };
 
             var stackLayout = new StackLayout { Spacing = 10 };
@@ -37,6 +39,7 @@ namespace CashierApp
                 Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
                 FontAttributes = FontAttributes.Bold,
                 FontSize = 18
+                
             });
 
             var productGrid = new Grid
@@ -58,6 +61,7 @@ namespace CashierApp
             {
                 Text = "Product Name",
                 FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
                 HorizontalOptions = LayoutOptions.Start
             };
             productGrid.Children.Add(productNameHeader);
@@ -66,8 +70,9 @@ namespace CashierApp
 
             var quantityHeader = new Label
             {
-                Text = "Quantity",
+                Text = "Ilość",
                 FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
                 HorizontalOptions = LayoutOptions.Center
             };
             productGrid.Children.Add(quantityHeader);
@@ -76,8 +81,9 @@ namespace CashierApp
 
             var superscriptHeader = new Label
             {
-                Text = "Superscript",
+                Text = "Znak",
                 FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
                 HorizontalOptions = LayoutOptions.Center
             };
             productGrid.Children.Add(superscriptHeader);
@@ -95,6 +101,7 @@ namespace CashierApp
                 var productLabel = new Label
                 {
                     Text = productQuantity.ProductName,
+                    TextColor = Colors.Black,
                     VerticalOptions = LayoutOptions.Center,
                     HorizontalOptions = LayoutOptions.Start
                 };
@@ -109,7 +116,7 @@ namespace CashierApp
                     Keyboard = Keyboard.Numeric,
                     HorizontalOptions = LayoutOptions.Center,
                     WidthRequest = 80,
-                    TextColor = productQuantity.Quantity == 0 ? Colors.Red : Colors.White
+                    TextColor = productQuantity.Quantity == 0 ? Colors.Red : Colors.Black
                 };
 
                 quantityEntry.TextChanged += (sender, e) =>
@@ -127,8 +134,9 @@ namespace CashierApp
                 var superscriptEntry = new Entry
                 {
                     Text = productQuantity.Superscript,
-                    Placeholder = "Superscript",
+                    Placeholder = "znak",
                     HorizontalOptions = LayoutOptions.Center,
+                    TextColor =  Colors.Black,
                     WidthRequest = 80
                 };
                 superscriptEntry.TextChanged += (sender, e) =>
@@ -144,8 +152,8 @@ namespace CashierApp
 
             var saveButton = new Button
             {
-                Text = "Save Changes",
-                BackgroundColor = Colors.DodgerBlue,
+                Text = "Zapisz",
+                BackgroundColor = Colors.Green,
                 TextColor = Colors.White,
                 FontAttributes = FontAttributes.Bold,
                 Margin = new Thickness(0, 15, 0, 0)

@@ -1,24 +1,76 @@
-﻿
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CashierApp.ProductSummaryPage"
+             BackgroundColor="#F0F0F0"
              Title="Product Summary">
 
     <ScrollView>
-        <Grid x:Name="ProductSummaryGrid" Padding="10" VerticalOptions="FillAndExpand">
-            <!-- Headers -->
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <VerticalStackLayout Padding="10" Spacing="20">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <!-- Product Summary Grid -->
+            <Grid x:Name="ProductSummaryGrid" VerticalOptions="FillAndExpand"
+                  ColumnSpacing="10" RowSpacing="5" >
+                <!-- Headers -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <Label Grid.Row="0" Grid.Column="0" Text="Product" FontAttributes="Bold" HorizontalOptions="Center"/>
-            <Label Grid.Row="0" Grid.Column="1" Text="Quantity" FontAttributes="Bold" HorizontalOptions="Center"/>
-        </Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" 
+                       Text="Product" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="Black" 
+                       BackgroundColor="#D3D3D3" 
+                       Padding="5" />
+
+                <Label Grid.Row="0" Grid.Column="1" 
+                       Text="Quantity" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="Black" 
+                       BackgroundColor="#D3D3D3" 
+                       Padding="5" />
+            </Grid>
+
+            <!-- Meat Requirements Grid -->
+            <Grid x:Name="MeatRequirementsGrid" VerticalOptions="FillAndExpand"
+                  ColumnSpacing="10" RowSpacing="5">
+                <!-- Headers -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" 
+                       Text="Meat Type" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="Black" 
+                       BackgroundColor="#D3D3D3" 
+                       Padding="5" />
+
+                <Label Grid.Row="0" Grid.Column="1" 
+                       Text="Total Requirement" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="Black" 
+                       BackgroundColor="#D3D3D3" 
+                       Padding="5" />
+            </Grid>
+            <Button 
+                Text="Save Summary" 
+                Clicked="OnSaveSummaryClicked" 
+                VerticalOptions="Center" 
+                HorizontalOptions="Center" />
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
