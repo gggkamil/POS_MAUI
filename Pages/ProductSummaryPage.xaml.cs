@@ -243,7 +243,7 @@ namespace CashierApp
 
                 var requirementLabel = new Label
                 {
-                    Text = meat.Value.ToString("F3"),
+                    Text = meat.Value.ToString("F1"),
                     HorizontalOptions = LayoutOptions.Center,
                     TextColor = Colors.Black,
                     FontSize = 14
@@ -322,7 +322,7 @@ namespace CashierApp
 
                 var quantityLabel = new Label
                 {
-                    Text = product.Value.ToString("F3"),
+                    Text = product.Value.ToString("F1"),
                     HorizontalOptions = LayoutOptions.Center,
                     TextColor = Colors.Black,
                     FontSize = 14
