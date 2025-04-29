@@ -3,6 +3,7 @@ using Microsoft.Maui.Controls;
 using OfficeOpenXml;
 using System.IO;
 using System.Threading.Tasks;
+using ButchersCashier.Models;
 
 namespace CashierApp
 {

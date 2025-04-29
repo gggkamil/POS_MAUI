@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using OfficeOpenXml.Style;
+using ButchersCashier.Models;
 
 namespace CashierApp
 {
@@ -223,7 +224,7 @@ namespace CashierApp
                 // Add basic order information (Order ID and Customer Name)
                 var orderInfo = new Label
                 {
-                    Text = $"Order ID: {order.OrderId} - {order.CustomerName}",
+                    Text = $"ID: {order.OrderId} - {order.CustomerName}",
                     FontAttributes = FontAttributes.Bold,
                     FontSize = 18,
                     TextColor = Colors.Black,
@@ -331,8 +332,8 @@ namespace CashierApp
 
         private async Task DeleteOrder(OrderRow order)
         {
-            bool confirm = await DisplayAlert("Delete Order",
-                $"Are you sure you want to delete the order for '{order.CustomerName}'?", "Yes", "No");
+            bool confirm = await DisplayAlert("Usuń zamówienie",
+                $"Na pewno chcesz usunąć zmówianie dla '{order.CustomerName}'?", "Yes", "No");
 
             if (!confirm) return;
 
@@ -357,7 +358,7 @@ namespace CashierApp
 
                     if (rowToDelete == -1)
                     {
-                        await DisplayAlert("Error", "Order not found.", "OK");
+                        await DisplayAlert("Błąd", "Nie znaleziono zamówienia.", "OK");
                         return;
                     }
 
@@ -372,11 +373,11 @@ namespace CashierApp
                 Orders.Remove(order);
                 DisplayOrders();
 
-                await DisplayAlert("Success", "Order deleted successfully.", "OK");
+                await DisplayAlert("OK!", "Zamówienie zostało usunięte", "OK");
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Could not delete order: {ex.Message}", "OK");
+                await DisplayAlert("Błąd", $"Nie można usunąć zamówienia: {ex.Message}", "OK");
             }
         }
 
@@ -424,19 +425,5 @@ namespace CashierApp
         {
             await Navigation.PushAsync(new OrdersListPage(selectedOrder));
         }
-    }
-
-    public class ProductQuantity
-    {
-        public string ProductName { get; set; }
-        public decimal Quantity { get; set; }
-        public string Superscript { get; set; }
-    }
-
-    public class OrderRow
-    {
-        public int OrderId { get; set; }
-        public string CustomerName { get; set; }
-        public ObservableCollection<ProductQuantity> ProductQuantities { get; set; }
     }
 }
