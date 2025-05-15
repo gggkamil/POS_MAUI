@@ -1,32 +1,42 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ButchersCashier.Models;
+using ButchersCashier.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ButchersCashier
 {
     public static class ProductStorage
     {
-        private const string ProductFile = "products.json"; // JSON file to store products
-
-        // Save the products to a JSON file
-        public static async Task SaveProductsAsync(List<Product> products) // This can stay public
+        public static async Task<List<Product>> LoadProductsAsync()
         {
-            var json = JsonSerializer.Serialize(products);
-            var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ProductFile);
-            await File.WriteAllTextAsync(filePath, json);
+            using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
+            return await db.Products.OrderBy(p => p.Id).ToListAsync();
         }
 
-        // Load products from a JSON file
-        public static async Task<List<Product>> LoadProductsAsync() // This can also stay public
+        public static async Task SaveProductsAsync(List<Product> products)
         {
-            var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ProductFile);
-            if (!File.Exists(filePath))
-                return new List<Product>();
+            using var db = new AppDbContextFactory().CreateDbContext(Array.Empty<string>());
 
-            var json = await File.ReadAllTextAsync(filePath);
-            return JsonSerializer.Deserialize<List<Product>>(json);
+            foreach (var product in products)
+            {
+                if (product.Id == 0)
+                {
+                    db.Products.Add(product); // New product
+                }
+                else
+                {
+                    var existing = await db.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
+                    if (existing != null)
+                    {
+                        db.Entry(existing).CurrentValues.SetValues(product); // Update
+                    }
+                }
+            }
+
+            await db.SaveChangesAsync();
         }
     }
 }

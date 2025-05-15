@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ButchersCashier;
-
+using Microsoft.Maui.Storage;
 namespace CashierApp
 {
     public partial class AdminPage : ContentPage
@@ -62,14 +62,13 @@ namespace CashierApp
                 // Load existing products
                 var existingProducts = await ProductStorage.LoadProductsAsync();
                 int newId = existingProducts
-                    .Where(p => p.Id != null)
-                    .Select(p => int.TryParse(p.Id, out int id) ? id : 0)
+                    .Select(p => p.Id)
                     .DefaultIfEmpty(0)
                     .Max() + 1;
                 // Create a new product
                 Product newProduct = new Product
                 {
-                    Id = newId.ToString(),
+                    Id = newId,
                     Name = name,
                     Category = category,
                     ImagePath = imagePath,
