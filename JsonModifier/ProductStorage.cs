@@ -24,19 +24,38 @@ namespace ButchersCashier
             {
                 if (product.Id == 0)
                 {
-                    db.Products.Add(product); // New product
+                    db.Products.Add(product); // Let SQL generate Id
                 }
                 else
                 {
-                    var existing = await db.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
+                    var existing = await db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == product.Id);
                     if (existing != null)
                     {
-                        db.Entry(existing).CurrentValues.SetValues(product); // Update
+                        db.Products.Update(product);
+                    }
+                    else
+                    {
+                        // NEW product has manually set Id → RESET it
+                        product.Id = 0;
+                        db.Products.Add(product); // Insert without forcing Id
                     }
                 }
             }
 
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                var root = ex.GetBaseException();
+                string message = $"DB Save Error:\n{root.GetType().Name}\n{root.Message}";
+
+                System.Diagnostics.Debug.WriteLine(message);
+                await Application.Current.MainPage.DisplayAlert("Błąd zapisu do bazy", message, "OK");
+            }
         }
+
+
     }
 }
