@@ -12,7 +12,12 @@
                 TextColor="White"
                 HorizontalOptions="Center"
                 Margin="0,0,0,10" />
-
+            <Button 
+    Text="Dodaj grupę"
+    Clicked="AddGroup_Clicked"
+    BackgroundColor="#333"
+    TextColor="White"
+    HorizontalOptions="Center"/>
             <!-- Orders Container -->
             <StackLayout x:Name="OrdersContainer" Padding="10" Spacing="10">
             </StackLayout>

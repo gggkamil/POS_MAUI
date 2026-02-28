@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OfficeOpenXml.Style;
 using ButchersCashier.Models;
+using ButchersCashier.Pages;
 
 namespace CashierApp
 {
@@ -16,7 +17,7 @@ namespace CashierApp
         private string filePath;
 
         public ObservableCollection<OrderRow> Orders { get; set; } = new();
-
+        public ObservableCollection<OrderGroup> Groups { get; set; } = new();
         public OrdersPage()
         {
             InitializeComponent();
@@ -207,128 +208,128 @@ namespace CashierApp
         {
             OrdersContainer.Children.Clear(); // Clear any previous content in the container
 
+            foreach (var group in Groups)
+            {
+                OrdersContainer.Children.Add(CreateGroupTile(group));
+            }
             foreach (var order in Orders)
             {
-                // Create a grid to hold the order info, product summary, and delete button
-                var mainGrid = new Grid
-                {
-                    ColumnDefinitions =
-            {
-                new ColumnDefinition { Width = GridLength.Star },  // For order information and product summary
-                new ColumnDefinition { Width = GridLength.Auto }  // For delete button
-            },
-                    VerticalOptions = LayoutOptions.Center,
-                    Margin = new Thickness(0, 5)
-                };
-
-                // Add basic order information (Order ID and Customer Name)
-                var orderInfo = new Label
-                {
-                    Text = $"ID: {order.OrderId} - {order.CustomerName}",
-                    FontAttributes = FontAttributes.Bold,
-                    FontSize = 18,
-                    TextColor = Colors.Black,
-                    VerticalOptions = LayoutOptions.Center
-                };
-
-                // Add a tap gesture recognizer to the order info
-                var tapGesture = new TapGestureRecognizer();
-                tapGesture.Tapped += async (sender, e) => await OnOrderSelected(order);
-                
-
-                // Create a small grid to display product names (top) and quantities (bottom)
-                var productGrid = new Grid
-                {
-                    ColumnSpacing = 5,
-                    RowDefinitions =
-            {
-                new RowDefinition { Height = GridLength.Auto }, // Product Names
-                new RowDefinition { Height = GridLength.Auto }  // Quantities
+                OrdersContainer.Children.Add(CreateOrderFrame(order));
             }
-                };
 
-                int column = 0;
-                foreach (var product in order.ProductQuantities)
-                {
-                    if (product.Quantity > 0 || !string.IsNullOrEmpty(product.Superscript))
-                    {
-                        var productNameLabel = new Label
-                        {
-                            Text = product.ProductName,
-                            FontSize = 12,
-                            TextColor = Colors.Black,
-                            HorizontalTextAlignment = TextAlignment.Center
-
-                        };
-                        productGrid.Children.Add(productNameLabel);
-                        Grid.SetRow(productNameLabel, 0); // Top row for product names
-                        Grid.SetColumn(productNameLabel, column);
-
-                        var columnDefinition = new ColumnDefinition { Width = GridLength.Auto };
-                        productGrid.ColumnDefinitions.Add(columnDefinition);
-
-                        // Add quantities (second row)
-                        var quantityLabel = new Label
-                        {
-                            Text = $"{product.Quantity}{(string.IsNullOrEmpty(product.Superscript) ? "" : product.Superscript)}",
-                            FontSize = 12,
-                            TextColor = Colors.Black,
-                            HorizontalTextAlignment = TextAlignment.Center
-                        };
-                        productGrid.Children.Add(quantityLabel);
-                        Grid.SetRow(quantityLabel, 1); // Bottom row for quantities
-                        Grid.SetColumn(quantityLabel, column);
-
-                        column++;
-                    }
-                }
-
-                // Add Delete Button
-                var deleteButton = new Button
-                {
-                    Text = "X",
-                    Command = new Command(async () => await DeleteOrder(order)), // Bind to delete logic
-                    WidthRequest = 24,
-                    HeightRequest = 24,
-                    FontSize = 12,
-                    BackgroundColor = Colors.Red,
-                    TextColor = Colors.White,
-                    CornerRadius = 12,
-                    HorizontalOptions = LayoutOptions.End,
-                    VerticalOptions = LayoutOptions.Center
-                };
-
-                // Add elements to the main grid
-                var orderInfoStack = new StackLayout { Spacing = 5 };
-                orderInfoStack.Children.Add(orderInfo);
-                if (column > 0) // Only add product grid if there are products to display
-                {
-                    orderInfoStack.Children.Add(productGrid);
-                }
-
-                mainGrid.Children.Add(orderInfoStack);
-                Grid.SetColumn(orderInfoStack, 0); // Place in the first column
-
-                mainGrid.Children.Add(deleteButton);
-                Grid.SetColumn(deleteButton, 1); // Place in the second column
-
-                // Wrap the grid in a frame for styling
-                var frame = new Frame
-                {
-                    BorderColor = Colors.Gray,
-                    Padding = new Thickness(10, 5),
-                    CornerRadius = 8,
-                    Content = mainGrid,
-                    BackgroundColor = Colors.White
-                };
-                frame.GestureRecognizers.Add(tapGesture);
-                // Add the frame to the container
-                OrdersContainer.Children.Add(frame);
-            }
         }
 
 
+        private View CreateOrderFrame(OrderRow order)
+        {
+            var mainGrid = new Grid
+            {
+                ColumnDefinitions =
+        {
+            new ColumnDefinition { Width = GridLength.Star },
+            new ColumnDefinition { Width = GridLength.Auto }
+        },
+                VerticalOptions = LayoutOptions.Center,
+                Margin = new Thickness(0, 5)
+            };
 
+            var orderInfo = new Label
+            {
+                Text = $"ID: {order.OrderId} - {order.CustomerName}",
+                FontAttributes = FontAttributes.Bold,
+                FontSize = 18,
+                TextColor = Colors.Black,
+                VerticalOptions = LayoutOptions.Center
+            };
+
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (sender, e) => await OnOrderSelected(order);
+
+            var productGrid = new Grid
+            {
+                ColumnSpacing = 5,
+                RowDefinitions =
+        {
+            new RowDefinition { Height = GridLength.Auto },
+            new RowDefinition { Height = GridLength.Auto }
+        }
+            };
+
+            int column = 0;
+
+            foreach (var product in order.ProductQuantities)
+            {
+                if (product.Quantity > 0 || !string.IsNullOrEmpty(product.Superscript))
+                {
+                    var productNameLabel = new Label
+                    {
+                        Text = product.ProductName,
+                        FontSize = 12,
+                        TextColor = Colors.Black,
+                        HorizontalTextAlignment = TextAlignment.Center
+                    };
+
+                    productGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                    productGrid.Children.Add(productNameLabel);
+                    Grid.SetRow(productNameLabel, 0);
+                    Grid.SetColumn(productNameLabel, column);
+
+                    var quantityLabel = new Label
+                    {
+                        Text = $"{product.Quantity}{(string.IsNullOrEmpty(product.Superscript) ? "" : product.Superscript)}",
+                        FontSize = 12,
+                        TextColor = Colors.Black,
+                        HorizontalTextAlignment = TextAlignment.Center
+                    };
+
+                    productGrid.Children.Add(quantityLabel);
+                    Grid.SetRow(quantityLabel, 1);
+                    Grid.SetColumn(quantityLabel, column);
+
+                    column++;
+                }
+            }
+
+            var deleteButton = new Button
+            {
+                Text = "X",
+                Command = new Command(async () => await DeleteOrder(order)),
+                WidthRequest = 24,
+                HeightRequest = 24,
+                FontSize = 12,
+                BackgroundColor = Colors.Red,
+                TextColor = Colors.White,
+                CornerRadius = 12,
+                HorizontalOptions = LayoutOptions.End,
+                VerticalOptions = LayoutOptions.Center
+            };
+
+            var orderInfoStack = new StackLayout { Spacing = 5 };
+            orderInfoStack.Children.Add(orderInfo);
+
+            if (column > 0)
+                orderInfoStack.Children.Add(productGrid);
+
+            mainGrid.Children.Add(orderInfoStack);
+            Grid.SetColumn(orderInfoStack, 0);
+
+            mainGrid.Children.Add(deleteButton);
+            Grid.SetColumn(deleteButton, 1);
+
+            var frame = new Frame
+            {
+                BorderColor = Colors.Gray,
+                Padding = new Thickness(10, 5),
+                CornerRadius = 8,
+                Content = mainGrid,
+                BackgroundColor = Colors.White
+            };
+
+            frame.GestureRecognizers.Add(tapGesture);
+
+            return frame;
+        }
 
         private async Task DeleteOrder(OrderRow order)
         {
@@ -424,6 +425,151 @@ namespace CashierApp
         private async Task OnOrderSelected(OrderRow selectedOrder)
         {
             await Navigation.PushAsync(new OrdersListPage(selectedOrder));
+        }
+        private async void AddGroup_Clicked(object sender, EventArgs e)
+        {
+            if (!Orders.Any())
+            {
+                await DisplayAlert("Brak", "Nie ma zamówień do zgrupowania", "OK");
+                return;
+            }
+
+            // wybór nazwy grupy
+            string name = await DisplayPromptAsync("Nowa grupa", "Nazwa grupy:");
+
+            if (string.IsNullOrWhiteSpace(name))
+                return;
+
+            // lista wyboru zamówień
+            var selectedOrders = new List<OrderRow>();
+
+            foreach (var order in Orders)
+            {
+                bool add = await DisplayAlert(
+                    "Dodaj do grupy?",
+                    $"ID {order.OrderId} - {order.CustomerName}",
+                    "Tak",
+                    "Nie");
+
+                if (add)
+                    selectedOrders.Add(order);
+            }
+
+            if (!selectedOrders.Any())
+                return;
+
+            var group = new OrderGroup
+            {
+                Name = name,
+                Orders = new ObservableCollection<OrderRow>(selectedOrders)
+            };
+
+            Groups.Add(group);
+
+            // 👉 usuń z głównej listy
+            foreach (var order in selectedOrders)
+            {
+                Orders.Remove(order);
+            }
+
+            DisplayOrders();
+
+         
+        }
+
+        private View CreateGroupTile(OrderGroup group)
+        {
+            bool expanded = false;
+
+            var ordersLayout = new VerticalStackLayout
+            {
+                IsVisible = false
+            };
+
+            foreach (var order in group.Orders)
+            {
+                ordersLayout.Children.Add(CreateOrderFrame(order));
+            }
+
+            var headerGrid = new Grid
+            {
+                ColumnDefinitions =
+        {
+            new ColumnDefinition { Width = GridLength.Star },
+            new ColumnDefinition { Width = GridLength.Auto }
+        }
+            };
+
+            var header = new Label
+            {
+                Text = $"📦 {group.Name} ({group.Orders.Count})",
+                FontSize = 18,
+                FontAttributes = FontAttributes.Bold
+            };
+
+            var deleteGroupButton = new Button
+            {
+                Text = "X",
+                WidthRequest = 24,
+                HeightRequest = 24,
+                FontSize = 12,
+                BackgroundColor = Colors.Red,
+                TextColor = Colors.White,
+                CornerRadius = 12
+            };
+
+            deleteGroupButton.Clicked += async (s, e) =>
+            {
+                bool confirm = await DisplayAlert(
+                    "Usuń grupę",
+                    $"Usunąć grupę '{group.Name}'?",
+                    "Tak",
+                    "Nie");
+
+                if (!confirm) return;
+
+                DeleteGroup(group);
+            };
+
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (_, __) =>
+            {
+                expanded = !expanded;
+                ordersLayout.IsVisible = expanded;
+            };
+
+            header.GestureRecognizers.Add(tap);
+
+            headerGrid.Children.Add(header);
+            Grid.SetColumn(header, 0);
+
+            headerGrid.Children.Add(deleteGroupButton);
+            Grid.SetColumn(deleteGroupButton, 1);
+
+            return new Frame
+            {
+                BorderColor = Colors.DarkBlue,
+                BackgroundColor = Color.FromRgb(240, 240, 255),
+                CornerRadius = 8,
+                Content = new VerticalStackLayout
+                {
+                    Children = { headerGrid, ordersLayout }
+                }
+            };
+        }
+        private void DeleteGroup(OrderGroup group)
+        {
+            // 👉 przywróć zamówienia do głównej listy
+            foreach (var order in group.Orders)
+            {
+                if (!Orders.Contains(order))
+                    Orders.Add(order);
+            }
+
+            // 👉 usuń tylko grupę
+            Groups.Remove(group);
+
+            DisplayOrders();
         }
     }
 }
