@@ -343,6 +343,13 @@ namespace CashierApp
             };
 
             frame.GestureRecognizers.Add(tapGesture);
+            var drag = new DragGestureRecognizer();
+            drag.DragStarting += (s, e) =>
+            {
+                e.Data.Properties.Add("OrderId", order.OrderId);
+            };
+
+            frame.GestureRecognizers.Add(drag);
 
             return frame;
         }
@@ -513,7 +520,20 @@ namespace CashierApp
             {
                 ordersLayout.Children.Add(CreateOrderFrame(order, group));
             }
+            var drop = new DropGestureRecognizer();
+            drop.AllowDrop = true;
 
+            drop.Drop += (s, e) =>
+            {
+                if (e.Data.Properties.TryGetValue("OrderId", out var value))
+                {
+                    int orderId = (int)value;
+
+                    MoveOrderToGroup(orderId, group);
+                }
+            };
+
+            ordersLayout.GestureRecognizers.Add(drop);
             var headerGrid = new Grid
             {
                 ColumnDefinitions =
@@ -610,6 +630,35 @@ namespace CashierApp
             Groups.Remove(group);
 
             DisplayOrders();
+        }
+
+        private void MoveOrderToGroup(int orderId, OrderGroup targetGroup)
+        {
+            // znajdź zamówienie w głównej liście
+            var order = Orders.FirstOrDefault(x => x.OrderId == orderId);
+
+            if (order != null)
+            {
+                Orders.Remove(order);
+                targetGroup.Orders.Add(order);
+                DisplayOrders();
+                return;
+            }
+
+            // jeśli nie w głównej liście — szukaj w grupach
+            foreach (var g in Groups)
+            {
+                var existing = g.Orders.FirstOrDefault(x => x.OrderId == orderId);
+                if (existing != null)
+                {
+                    if (g == targetGroup) return; // ta sama grupa
+
+                    g.Orders.Remove(existing);
+                    targetGroup.Orders.Add(existing);
+                    DisplayOrders();
+                    return;
+                }
+            }
         }
         private async Task AddOrdersToExistingGroup(OrderGroup group)
         {
