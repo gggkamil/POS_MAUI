@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ButchersCashier.Pages.SelectOrdersPage"
+             Title="SelectOrdersPage">
+    <VerticalStackLayout Padding="20" Spacing="10">
+
+        <Label Text="Wybierz zamówienia"
+               FontSize="20"
+               FontAttributes="Bold"/>
+
+        <CollectionView x:Name="OrdersList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="5">
+                        <CheckBox IsChecked="{Binding IsSelected}" />
+                        <Label Text="{Binding DisplayName}" Margin="30,0,0,0"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="Utwórz grupę"
+                Clicked="OnCreateClicked"/>
+    </VerticalStackLayout>
+</ContentPage>

@@ -35,7 +35,12 @@ namespace CashierApp
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            RefreshOrders();
+
+            // Tylko jeśli lista jest pusta
+            if (!Orders.Any() && !Groups.Any())
+            {
+                RefreshOrders();
+            }
         }
 
         private async void LoadOrdersFromExcel()
@@ -220,7 +225,7 @@ namespace CashierApp
         }
 
 
-        private View CreateOrderFrame(OrderRow order)
+        private View CreateOrderFrame(OrderRow order, OrderGroup? parentGroup = null)
         {
             var mainGrid = new Grid
             {
@@ -294,7 +299,6 @@ namespace CashierApp
             var deleteButton = new Button
             {
                 Text = "X",
-                Command = new Command(async () => await DeleteOrder(order)),
                 WidthRequest = 24,
                 HeightRequest = 24,
                 FontSize = 12,
@@ -303,6 +307,18 @@ namespace CashierApp
                 CornerRadius = 12,
                 HorizontalOptions = LayoutOptions.End,
                 VerticalOptions = LayoutOptions.Center
+            };
+
+            deleteButton.Clicked += async (s, e) =>
+            {
+                if (parentGroup != null)
+                {
+                    RemoveOrderFromGroup(order, parentGroup);
+                }
+                else
+                {
+                    await DeleteOrder(order);
+                }
             };
 
             var orderInfoStack = new StackLayout { Spacing = 5 };
@@ -330,7 +346,25 @@ namespace CashierApp
 
             return frame;
         }
+        private void RemoveOrderFromGroup(OrderRow order, OrderGroup group)
+        {
+            group.Orders.Remove(order);
 
+            // tylko jeśli nie istnieje w głównej liście
+            if (!Orders.Any(x => x.OrderId == order.OrderId))
+                Orders.Add(order);
+
+            DisplayOrders();
+        }
+        private void RemoveOrderFromEverywhere(OrderRow order)
+        {
+            // usuń z głównej listy
+            Orders.Remove(order);
+
+            // usuń ze wszystkich grup
+            foreach (var g in Groups)
+                g.Orders.Remove(order);
+        }
         private async Task DeleteOrder(OrderRow order)
         {
             bool confirm = await DisplayAlert("Usuń zamówienie",
@@ -430,51 +464,40 @@ namespace CashierApp
         {
             if (!Orders.Any())
             {
-                await DisplayAlert("Brak", "Nie ma zamówień do zgrupowania", "OK");
+                await DisplayAlert("Brak", "Nie ma zamówień", "OK");
                 return;
             }
 
-            // wybór nazwy grupy
             string name = await DisplayPromptAsync("Nowa grupa", "Nazwa grupy:");
+            if (string.IsNullOrWhiteSpace(name)) return;
 
-            if (string.IsNullOrWhiteSpace(name))
-                return;
-
-            // lista wyboru zamówień
-            var selectedOrders = new List<OrderRow>();
-
-            foreach (var order in Orders)
+            var page = new SelectOrdersPage(Orders.ToList());
+            page.OnOrdersSelected += selectedOrders =>
             {
-                bool add = await DisplayAlert(
-                    "Dodaj do grupy?",
-                    $"ID {order.OrderId} - {order.CustomerName}",
-                    "Tak",
-                    "Nie");
+                if (!selectedOrders.Any()) return;
 
-                if (add)
-                    selectedOrders.Add(order);
-            }
+                var group = new OrderGroup
+                {
+                    Name = name,
+                    Orders = new ObservableCollection<OrderRow>()
+                };
 
-            if (!selectedOrders.Any())
-                return;
+                // najpierw przenieś zamówienia
+                foreach (var o in selectedOrders)
+                {
+                    var realOrder = Orders.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (realOrder != null)
+                    {
+                        Orders.Remove(realOrder);
+                        group.Orders.Add(realOrder);
+                    }
+                }
+                Groups.Add(group);
 
-            var group = new OrderGroup
-            {
-                Name = name,
-                Orders = new ObservableCollection<OrderRow>(selectedOrders)
+                MainThread.BeginInvokeOnMainThread(DisplayOrders);
             };
 
-            Groups.Add(group);
-
-            // 👉 usuń z głównej listy
-            foreach (var order in selectedOrders)
-            {
-                Orders.Remove(order);
-            }
-
-            DisplayOrders();
-
-         
+            await Navigation.PushModalAsync(page);
         }
 
         private View CreateGroupTile(OrderGroup group)
@@ -488,7 +511,7 @@ namespace CashierApp
 
             foreach (var order in group.Orders)
             {
-                ordersLayout.Children.Add(CreateOrderFrame(order));
+                ordersLayout.Children.Add(CreateOrderFrame(order, group));
             }
 
             var headerGrid = new Grid
@@ -496,7 +519,8 @@ namespace CashierApp
                 ColumnDefinitions =
         {
             new ColumnDefinition { Width = GridLength.Star },
-            new ColumnDefinition { Width = GridLength.Auto }
+            new ColumnDefinition { Width = GridLength.Auto },
+             new ColumnDefinition { Width = GridLength.Auto }
         }
             };
 
@@ -530,7 +554,20 @@ namespace CashierApp
 
                 DeleteGroup(group);
             };
+            var addButton = new Button
+            {
+                Text = "+",
+                WidthRequest = 24,
+                HeightRequest = 24,
+                BackgroundColor = Colors.Green,
+                TextColor = Colors.White,
+                CornerRadius = 12
+            };
 
+            addButton.Clicked += async (s, e) =>
+            {
+                await AddOrdersToExistingGroup(group);
+            };
             var tap = new TapGestureRecognizer();
             tap.Tapped += (_, __) =>
             {
@@ -543,8 +580,11 @@ namespace CashierApp
             headerGrid.Children.Add(header);
             Grid.SetColumn(header, 0);
 
+            headerGrid.Children.Add(addButton);
+            Grid.SetColumn(addButton, 1);
+
             headerGrid.Children.Add(deleteGroupButton);
-            Grid.SetColumn(deleteGroupButton, 1);
+            Grid.SetColumn(deleteGroupButton, 2);
 
             return new Frame
             {
@@ -571,5 +611,33 @@ namespace CashierApp
 
             DisplayOrders();
         }
+        private async Task AddOrdersToExistingGroup(OrderGroup group)
+        {
+            if (!Orders.Any())
+            {
+                await DisplayAlert("Brak", "Nie ma wolnych zamówień", "OK");
+                return;
+            }
+
+            var page = new SelectOrdersPage(Orders.ToList());
+
+            page.OnOrdersSelected += selected =>
+            {
+                foreach (var o in selected)
+                {
+                    var realOrder = Orders.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (realOrder != null)
+                    {
+                        Orders.Remove(realOrder);
+                        group.Orders.Add(realOrder);
+                    }
+                }
+
+                MainThread.BeginInvokeOnMainThread(DisplayOrders);
+            };
+
+            await Navigation.PushModalAsync(page);
+        }
+
     }
 }
